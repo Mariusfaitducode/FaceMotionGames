@@ -15,6 +15,8 @@ public class PlanetGeneration : MonoBehaviour
     [SerializeField] private Texture2D[] patternTextures;
     [SerializeField] private Texture2D[] shadowTextures;
 
+    [SerializeField] private Texture2D[] lightTextures;
+
     [SerializeField] private Texture2D[] finalPatternTextures;
 
     [Header("Color Configuration")]
@@ -29,8 +31,8 @@ public class PlanetGeneration : MonoBehaviour
 
         // Ajouter un collider circulaire pour les collisions
         CircleCollider2D collider = gameObject.AddComponent<CircleCollider2D>();
-        collider.isTrigger = true;
-        gameObject.tag = "obstacle";
+        // collider.isTrigger = true;
+        gameObject.tag = "Obstacle";
 
         // Réduire la taille du sprite de manière aléatoire
         float scale = Random.Range(0.6f, 1f);
@@ -89,10 +91,12 @@ public class PlanetGeneration : MonoBehaviour
 
         // Appliquer toutes les shadow layers
 
+        int count = 0;
         foreach (var shadowTexture in shadowTextures)
         {
-            float shadowIntensity = Random.Range(0.1f, 0.3f); // Intensité de l'assombrissement
+            float shadowIntensity = Random.Range(0.1f, 0.3f) + count * 0.2f; // Intensité de l'assombrissement
             ApplyShadowToTexture(finalTexture, shadowTexture, shadowIntensity);
+            count++;
         }
 
         // Appliquer les ombres en assombrissant les couleurs existantes
@@ -101,6 +105,17 @@ public class PlanetGeneration : MonoBehaviour
 
         // Appliquer le contour
         ApplyPixelPerfectOutline(finalTexture);
+
+
+        // * Light Layer
+
+        // Appliquer les light layers
+
+        foreach (var lightTexture in lightTextures)
+        {
+            float lightRangeIntensity = Random.Range(0.1f, 0.3f);
+            ApplyLightToTexture(finalTexture, lightTexture, lightRangeIntensity);
+        }
 
         // Appliquer le pattern final
 
@@ -208,6 +223,32 @@ public class PlanetGeneration : MonoBehaviour
         }
 
         targetTexture.SetPixels(outlinePixels);
+    }
+
+    private void ApplyLightToTexture(Texture2D targetTexture, Texture2D lightTexture, float lightRangeIntensity)
+    {
+        Color[] lightPixels = lightTexture.GetPixels();
+        Color[] targetPixels = targetTexture.GetPixels();
+
+        for (int i = 0; i < lightPixels.Length; i++)
+        {
+            if (lightPixels[i].a > 0)
+            {
+                float lightIntensity = lightPixels[i].a * lightRangeIntensity;
+                Color originalColor = targetPixels[i];
+                
+                // Version plus douce qui préserve mieux les couleurs originales
+                Color lightColor = Color.Lerp(originalColor, Color.white, lightIntensity);
+                targetPixels[i] = new Color(
+                    lightColor.r,
+                    lightColor.g,
+                    lightColor.b,
+                    originalColor.a
+                );
+            }
+        }
+
+        targetTexture.SetPixels(targetPixels);
     }
 
     // Pour tester la génération dans l'éditeur

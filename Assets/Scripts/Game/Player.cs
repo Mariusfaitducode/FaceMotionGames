@@ -24,11 +24,11 @@ public class Player : MonoBehaviour
 
         initialPosition = transform.position;
         
-        GameController gameController = FindObjectOfType<GameController>();
-        if (gameController != null)
-        {
-            gameController.onMouthStateEvent.AddListener(HandleMouthState);
-        }
+        // GameController gameController = FindObjectOfType<GameController>();
+        // if (gameController != null)
+        // {
+        //     gameController.onMouthStateEvent.AddListener(HandleMouthState);
+        // }
     }
 
     public void SetFaceId(int id)
@@ -57,6 +57,11 @@ public class Player : MonoBehaviour
         {
             this.isMouthOpen = isOpen;
         }
+    }
+
+    public void SetMouthState(bool isOpen)
+    {
+        isMouthOpen = isOpen;
     }
 
     void FixedUpdate()

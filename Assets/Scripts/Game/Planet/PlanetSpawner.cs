@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor;
 
 public class PlanetSpawner : MonoBehaviour
 {
@@ -63,6 +64,9 @@ public class PlanetSpawner : MonoBehaviour
         Vector3 spawnPosition = mainCamera.ViewportToWorldPoint(new Vector3(1.1f, heightPercentage, 10f));
 
         GameObject planet = Instantiate(planetPrefab, spawnPosition, Quaternion.identity);
-        planet.AddComponent<PlanetMover>().Initialize(planetSpeed, destroyXPosition, oscillationAmplitude, oscillationFrequency);
+
+        // Add planet mover component
+        float speed = planetSpeed * (1 + Random.Range(-0.4f, 0.4f));
+        planet.AddComponent<PlanetMover>().Initialize(speed, destroyXPosition, oscillationAmplitude, oscillationFrequency);
     }
 }

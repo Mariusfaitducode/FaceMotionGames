@@ -40,10 +40,16 @@ public class WebSocketClient : MonoBehaviour
     [SerializeField]
     private bool showDebugLogs = true;
 
+    private double startupTime;
+
     private void Start()
     {
         cancellationTokenSource = new CancellationTokenSource();
         ConnectToWebSocket();
+
+        // Calculer le timestamp Unix au démarrage
+        System.DateTime epochStart = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+        startupTime = (System.DateTime.UtcNow - epochStart).TotalSeconds;
     }
 
     private async void ConnectToWebSocket()
@@ -112,10 +118,19 @@ public class WebSocketClient : MonoBehaviour
                             $"Blink={wsMessage.data.blink_detected}, " +
                             $"MouthOpen={wsMessage.data.mouth_open}, " +
                             $"MouthRatio={wsMessage.data.mouth_ratio:F2}, " +
-                            $"TotalBlinks={wsMessage.data.total_blinks}");
+                            $"TotalBlinks={wsMessage.data.total_blinks}, " +
+                            $"Timestamp={wsMessage.timestamp}");
+
+                    // Calculer la latence en millisecondes
+                    // Obtenir le timestamp Unix actuel
+                    System.DateTime epochStart = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+                    double currentUnixTime = (System.DateTime.UtcNow - epochStart).TotalSeconds;
+
+                    // Calculer la latence
+                    double latency = (currentUnixTime - wsMessage.timestamp) * 1000;
+                    Debug.Log($"Latency: {latency:F2}ms");
                 }
 
-                // Passer l'objet FaceData complet
                 MainThreadDispatcher.Enqueue(() => {
                     OnBlinkDetected?.Invoke(wsMessage.data);
                     OnMouthStateChanged?.Invoke(wsMessage.data);
