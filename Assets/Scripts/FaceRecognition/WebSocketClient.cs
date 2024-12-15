@@ -7,9 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-
-
-
 [Serializable]
 public class FaceData
 {
@@ -36,9 +33,9 @@ public class WebSocketClient : MonoBehaviour
     private CancellationTokenSource cancellationTokenSource;
 
     // Events pour notifier les autres composants
-    public event Action<bool> OnBlinkDetected;
-    public event Action<bool> OnMouthStateChanged;
-    public event Action<float> OnMouthRatioChanged;
+    public event Action<FaceData> OnBlinkDetected;
+    public event Action<FaceData> OnMouthStateChanged;
+    public event Action<FaceData> OnMouthRatioChanged;
 
     [SerializeField]
     private bool showDebugLogs = true;
@@ -118,11 +115,11 @@ public class WebSocketClient : MonoBehaviour
                             $"TotalBlinks={wsMessage.data.total_blinks}");
                 }
 
-                // Déclencher les événements sur le thread principal
+                // Passer l'objet FaceData complet
                 MainThreadDispatcher.Enqueue(() => {
-                    OnBlinkDetected?.Invoke(wsMessage.data.blink_detected);
-                    OnMouthStateChanged?.Invoke(wsMessage.data.mouth_open);
-                    OnMouthRatioChanged?.Invoke(wsMessage.data.mouth_ratio);
+                    OnBlinkDetected?.Invoke(wsMessage.data);
+                    OnMouthStateChanged?.Invoke(wsMessage.data);
+                    OnMouthRatioChanged?.Invoke(wsMessage.data);
                 });
             }
         }
