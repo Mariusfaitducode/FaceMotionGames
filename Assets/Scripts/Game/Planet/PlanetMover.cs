@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlanetMover : MonoBehaviour
 {
-    private float speed;
+    public float speed;
     private float destroyXPosition;
     private float amplitude;
     private float frequency;

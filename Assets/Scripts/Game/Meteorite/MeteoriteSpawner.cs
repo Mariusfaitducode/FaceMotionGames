@@ -80,15 +80,15 @@ public class MeteoriteMover : MonoBehaviour
         // Convertir l'angle en direction
         float angleRad = angle * Mathf.Deg2Rad;
         direction = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad));
-
-        // Ajouter une rotation à la météorite
-        // StartCoroutine(Rotate());
     }
 
     private void Update()
     {
-        // Déplacer la météorite
-        transform.Translate(direction * speed * Time.deltaTime);
+        // Déplacer la météorite en modifiant directement sa position
+        transform.position += (Vector3)(direction * speed * Time.deltaTime);
+
+        // Faire tourner la météorite sur elle-même
+        transform.Rotate(Vector3.forward * 180f * Time.deltaTime);
 
         // Vérifier si la météorite est assez loin pour être détruite
         if (Vector3.Distance(transform.position, startPosition) > destroyDistance)
@@ -97,22 +97,10 @@ public class MeteoriteMover : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator Rotate()
-    {
-        float rotationSpeed = Random.Range(90f, 180f); // Vitesse de rotation aléatoire
-        
-        while (true)
-        {
-            transform.Rotate(0, 0, rotationSpeed * Time.deltaTime);
-            yield return null;
-        }
-    }
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Optionnel : effet de particules ou son lors de la collision
             Destroy(gameObject);
         }
     }
