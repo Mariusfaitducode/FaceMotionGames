@@ -17,16 +17,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private Transform scoreContainer;
 
 
-    public bool startGame = false;
-    private Dictionary<int, float> mouthOpenTimers = new Dictionary<int, float>();
-    private float requiredTimeAllOpen = 5f; // 5 secondes requises
-    private bool isCountingDown = false;
-
-    [SerializeField] private GameObject waitingRoom;
-    [SerializeField] private GameObject planetSpawner;
-
-
-    
+    private StartGame startGame;
 
     // Start is called before the first frame update
     void Start()
@@ -37,6 +28,8 @@ public class PlayerManager : MonoBehaviour
         {
             gameController.onMouthStateEvent.AddListener(HandleMouthState);
         }
+
+        startGame = FindObjectOfType<StartGame>();
     }  
     
 
@@ -46,19 +39,7 @@ public class PlayerManager : MonoBehaviour
         {
             activePlayers[id].GetComponent<Player>().SetMouthState(isOpen);
             
-            // Mettre à jour le timer pour ce joueur
-            if (isOpen)
-            {
-                if (!mouthOpenTimers.ContainsKey(id))
-                {
-                    mouthOpenTimers[id] = 0f;
-                }
-            }
-            else
-            {
-                mouthOpenTimers.Remove(id);
-                isCountingDown = false;
-            }
+            startGame.SetMouthsOpen(id, isOpen, activePlayers.Count);
         }
         else
         {
@@ -66,54 +47,54 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (startGame || activePlayers.Count == 0) return;
+    // private void Update()
+    // {
+    //     if (startGame || activePlayers.Count == 0) return;
 
-        // Vérifier si tous les joueurs ont la bouche ouverte
-        bool allMouthsOpen = activePlayers.Count == mouthOpenTimers.Count;
+    //     // Vérifier si tous les joueurs ont la bouche ouverte
+    //     bool allMouthsOpen = activePlayers.Count == mouthOpenTimers.Count;
 
-        if (allMouthsOpen)
-        {
-            if (!isCountingDown)
-            {
-                isCountingDown = true;
-                Debug.Log("Tous les joueurs ont la bouche ouverte ! Début du compte à rebours...");
-            }
+    //     if (allMouthsOpen)
+    //     {
+    //         if (!isCountingDown)
+    //         {
+    //             isCountingDown = true;
+    //             Debug.Log("Tous les joueurs ont la bouche ouverte ! Début du compte à rebours...");
+    //         }
 
-            // Incrémenter tous les timers
-            foreach (int id in mouthOpenTimers.Keys.ToList())
-            {
-                mouthOpenTimers[id] += Time.deltaTime;
-            }
+    //         // Incrémenter tous les timers
+    //         foreach (int id in mouthOpenTimers.Keys.ToList())
+    //         {
+    //             mouthOpenTimers[id] += Time.deltaTime;
+    //         }
 
-            // Vérifier si tous les timers ont atteint le temps requis
-            bool allTimersComplete = mouthOpenTimers.Values.All(timer => timer >= requiredTimeAllOpen);
+    //         // Vérifier si tous les timers ont atteint le temps requis
+    //         bool allTimersComplete = mouthOpenTimers.Values.All(timer => timer >= requiredTimeAllOpen);
 
-            if (allTimersComplete)
-            {
-                startGame = true;
-                Debug.Log("Le jeu commence !");
+    //         if (allTimersComplete)
+    //         {
+    //             startGame = true;
+    //             Debug.Log("Le jeu commence !");
 
-                waitingRoom.SetActive(false);
-                planetSpawner.SetActive(true);
-            }
-            else
-            {
-                // Afficher le temps restant (prendre le timer le plus bas)
-                float lowestTimer = mouthOpenTimers.Values.Min();
-                float remainingTime = requiredTimeAllOpen - lowestTimer;
-                Debug.Log($"Temps restant : {remainingTime:F1} secondes");
-            }
-        }
-        else if (isCountingDown)
-        {
-            isCountingDown = false;
-            // Réinitialiser tous les timers
-            mouthOpenTimers.Clear();
-            Debug.Log("Compte à rebours interrompu !");
-        }
-    }
+    //             waitingRoom.SetActive(false);
+    //             planetSpawner.SetActive(true);
+    //         }
+    //         else
+    //         {
+    //             // Afficher le temps restant (prendre le timer le plus bas)
+    //             float lowestTimer = mouthOpenTimers.Values.Min();
+    //             float remainingTime = requiredTimeAllOpen - lowestTimer;
+    //             Debug.Log($"Temps restant : {remainingTime:F1} secondes");
+    //         }
+    //     }
+    //     else if (isCountingDown)
+    //     {
+    //         isCountingDown = false;
+    //         // Réinitialiser tous les timers
+    //         mouthOpenTimers.Clear();
+    //         Debug.Log("Compte à rebours interrompu !");
+    //     }
+    // }
 
     private void EnsurePlayerExists(int faceId)
     {

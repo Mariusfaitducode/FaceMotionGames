@@ -25,7 +25,7 @@ public class Player : MonoBehaviour
     [SerializeField] private float minScaleBeforeRespawn = 0.1f; // Taille minimum avant réapparition
 
     private bool isBeingAttracted = false;
-    private Transform attractorPlanet;
+    private GameObject attractorPlanet;
     private Vector3 originalScale;
 
     void Start()
@@ -83,6 +83,7 @@ public class Player : MonoBehaviour
             if (attractorPlanet == null)
             {
                 Respawn();
+                return;
             }
 
             // Désactiver la physique normale pendant l'attraction
@@ -90,7 +91,7 @@ public class Player : MonoBehaviour
             rb.angularVelocity = 0f;
 
             // Déplacer vers la planète
-            Vector2 directionToPlanet = (attractorPlanet.position - transform.position).normalized;
+            // Vector2 directionToPlanet = (attractorPlanet.position - transform.position).normalized;
             
             // Récupérer le PlanetMover pour avoir la vitesse de la planète
             PlanetMover planetMover = attractorPlanet.GetComponent<PlanetMover>();
@@ -103,7 +104,7 @@ public class Player : MonoBehaviour
             // Continuer l'attraction vers la planète
             transform.position = Vector2.MoveTowards(
                 transform.position,
-                attractorPlanet.position,
+                attractorPlanet.transform.position,
                 attractionSpeed * Time.fixedDeltaTime
             );
 
@@ -134,11 +135,11 @@ public class Player : MonoBehaviour
             UpdateScoreDisplay();
 
             // Commencer l'attraction
-            StartAttraction(collision.transform);
+            StartAttraction(collision.gameObject);
         }
     }
 
-    private void StartAttraction(Transform planet)
+    private void StartAttraction(GameObject planet)
     {
         isBeingAttracted = true;
         attractorPlanet = planet;
