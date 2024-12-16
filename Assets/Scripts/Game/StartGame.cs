@@ -11,6 +11,8 @@ public class StartGame : MonoBehaviour
     public bool startGame = false;
     private Dictionary<int, float> mouthOpenTimers = new Dictionary<int, float>();
     private float requiredTimeAllOpen = 5f; // 5 secondes requises
+
+    private float requiredTimeToRequestSnapshot = 2.5f; // 5 secondes requises
     private bool isCountingDown = false;
 
     [SerializeField] private GameObject planetSpawner;
@@ -32,8 +34,10 @@ public class StartGame : MonoBehaviour
 
     private int playerCount = 0;
 
+    private PlayerManager playerManager;
 
     public void Start(){
+        playerManager = FindObjectOfType<PlayerManager>();
 
         if (startGame){
             waitingRoom.SetActive(false);
@@ -91,15 +95,28 @@ public class StartGame : MonoBehaviour
             foreach (int id in mouthOpenTimers.Keys.ToList())
             {
                 mouthOpenTimers[id] += Time.deltaTime;
+
+                if (mouthOpenTimers[id] >= requiredTimeToRequestSnapshot)
+                {
+                    playerManager.RequestSnapshot(id);
+                }
             }
 
             // Vérifier si tous les timers ont atteint le temps requis
             bool allTimersComplete = mouthOpenTimers.Values.All(timer => timer >= requiredTimeAllOpen);
 
+
+
             if (allTimersComplete)
             {
                 startGame = true;
                 Debug.Log("Le jeu commence !");
+
+                // Demander un snapshot ici
+                // if (gameController != null)
+                // {
+                //     gameController.RequestSnapshot();
+                // }
 
                 waitingRoom.SetActive(false);
                 planetSpawner.SetActive(true);

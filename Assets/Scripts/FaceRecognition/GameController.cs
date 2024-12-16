@@ -8,11 +8,6 @@ public class GameController : MonoBehaviour
 {
     private WebSocketClient webSocketClient;
     
-    
-    
-    
-
-    
 
     // Events modifiés pour inclure l'ID du visage
     [SerializeField]
@@ -60,6 +55,14 @@ public class GameController : MonoBehaviour
             webSocketClient.OnBlinkDetected -= HandleBlink;
             webSocketClient.OnMouthStateChanged -= HandleMouthState;
             webSocketClient.OnMouthRatioChanged -= HandleMouthRatio;
+        }
+    }
+
+    public void RequestSnapshot(int id)
+    {
+        if (webSocketClient != null)
+        {
+            _ = webSocketClient.RequestSnapshot(id);
         }
     }
 }
