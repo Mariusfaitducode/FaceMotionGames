@@ -17,6 +17,9 @@ public class GameController : MonoBehaviour
     [SerializeField]
     public UnityEvent<int, float> onMouthRatioEvent = new UnityEvent<int, float>();
 
+    [SerializeField]
+    public UnityEvent<int, Texture2D> onSnapshotReceived = new UnityEvent<int, Texture2D>();
+
 
 
     void Start()
@@ -26,6 +29,8 @@ public class GameController : MonoBehaviour
         webSocketClient.OnBlinkDetected += HandleBlink;
         webSocketClient.OnMouthStateChanged += HandleMouthState;
         webSocketClient.OnMouthRatioChanged += HandleMouthRatio;
+
+        webSocketClient.OnSnapshotReceived += HandleSnapshotReceived;
     }
 
     private void HandleBlink(FaceData faceData)
@@ -44,6 +49,12 @@ public class GameController : MonoBehaviour
     {
         // EnsurePlayerExists(faceData.face_id);
         onMouthRatioEvent?.Invoke(faceData.face_id, faceData.mouth_ratio);
+    }
+
+
+    private void HandleSnapshotReceived(int faceId, Texture2D texture)
+    {
+        onSnapshotReceived?.Invoke(faceId, texture);
     }
 
     

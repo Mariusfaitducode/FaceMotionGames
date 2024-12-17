@@ -2,9 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
+
+    
+    private RawImage playerAvatar;
+
     [SerializeField]
     private float jetpackSpeed = 5f;  // Vitesse constante en unités par seconde
     
@@ -47,8 +52,9 @@ public class Player : MonoBehaviour
         faceId = id;
     }
 
-    public void SetScoreText(TextMeshProUGUI text)
+    public void SetPlayerHeader(RawImage avatar, TextMeshProUGUI text)
     {
+        playerAvatar = avatar;
         scoreText = text;
         UpdateScoreDisplay();
     }
@@ -57,7 +63,7 @@ public class Player : MonoBehaviour
     {
         if (scoreText != null)
         {
-            scoreText.text = $"Player {faceId}: {deathCount}";
+            scoreText.text = $"{deathCount}";
         }
     }
 
@@ -174,5 +180,34 @@ public class Player : MonoBehaviour
         {
             playerRenderer.sortingOrder = 1; // Ou la valeur par défaut que vous souhaitez
         }
+    }
+
+    public void SetSnapshot(Texture2D texture)
+    {
+        // Appliquer la texture
+        playerAvatar.texture = texture;
+        
+        // S'assurer que l'image est bien circulaire
+        // playerAvatar.gameObject.AddComponent<UnityEngine.UI.Mask>();
+        
+        // // Créer un GameObject enfant pour le masque s'il n'existe pas déjà
+        // Transform maskTransform = playerAvatar.transform.Find("CircleMask");
+        // if (maskTransform == null)
+        // {
+        //     // Ajouter un composant Mask au RawImage lui-même
+        //     UnityEngine.UI.RawImage rawImage = playerAvatar;
+        //     rawImage.maskable = true;
+
+        //     // Créer un masque sur le parent
+        //     UnityEngine.UI.Mask mask = playerAvatar.gameObject.AddComponent<UnityEngine.UI.Mask>();
+        //     mask.showMaskGraphic = true;
+
+        //     // Ajouter une Image sur le même GameObject que le RawImage pour définir la forme du masque
+        //     UnityEngine.UI.Image maskImage = playerAvatar.gameObject.AddComponent<UnityEngine.UI.Image>();
+        //     maskImage.sprite = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+        //     maskImage.color = Color.white;
+        //     maskImage.preserveAspect = true;
+        //     maskImage.raycastTarget = false;
+        // }
     }
 }

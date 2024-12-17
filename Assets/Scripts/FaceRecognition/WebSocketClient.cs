@@ -55,10 +55,6 @@ public class WebSocketClient : MonoBehaviour
     public event Action<FaceData> OnMouthRatioChanged;
     public event Action<int, Texture2D> OnSnapshotReceived;
 
-
-    [SerializeField]
-    private RawImage displayImage;
-
     [SerializeField]
     private bool showDebugLogs = true;
 
@@ -175,7 +171,6 @@ public class WebSocketClient : MonoBehaviour
                         if (showDebugLogs)
                         {
                             Debug.Log($"Successfully created texture for face {faceId}, size: {dataLength} bytes");
-                            displayImage.texture = texture;
                         }
                         
                         MainThreadDispatcher.Enqueue(() => {

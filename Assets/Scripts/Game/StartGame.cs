@@ -112,11 +112,7 @@ public class StartGame : MonoBehaviour
                 startGame = true;
                 Debug.Log("Le jeu commence !");
 
-                // Demander un snapshot ici
-                // if (gameController != null)
-                // {
-                //     gameController.RequestSnapshot();
-                // }
+                playerManager.ShowPlayersAvatar();
 
                 waitingRoom.SetActive(false);
                 planetSpawner.SetActive(true);
