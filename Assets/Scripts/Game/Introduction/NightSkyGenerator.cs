@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class NightSkyGenerator : MonoBehaviour
 {
@@ -20,11 +21,40 @@ public class NightSkyGenerator : MonoBehaviour
     [SerializeField] private float minFlickerSpeed = 0.5f;
     [SerializeField] private float maxFlickerSpeed = 2.0f;
 
+    [Header("Nebula Settings")]
+    [SerializeField] private Color nebulaColor1 = new Color(0.4f, 0.2f, 0.5f, 0.1f); // Violet foncé
+    [SerializeField] private Color nebulaColor2 = new Color(0.2f, 0.3f, 0.5f, 0.1f); // Bleu
+    [SerializeField] private Color nebulaColor3 = new Color(0.6f, 0.5f, 0.7f, 0.1f); // Violet clair
+    [SerializeField] private float nebulaScale = 50f; // Échelle du Perlin noise pour les détails
+    [SerializeField] private float nebulaMaskScale = 200f; // Échelle du Perlin noise pour le masque
+    [SerializeField] private float nebulaIntensity = 0.5f;
+    [SerializeField] private Vector2 nebulaOffset;
+    [SerializeField] private float nebulaMaskThreshold = 0.6f; // Seuil pour le masque
+
+    [Header("Transition Settings")]
+    [SerializeField] private float transitionDuration = 60f; // 3 minutes
+    [SerializeField] private Color endBackgroundColor = new Color(0.01f, 0.01f, 0.02f, 1f);
+    [SerializeField] private float starFadeOutDuration = 3f; // Durée de fade pour chaque étoile
+
     private Texture2D skyTexture;
     private SpriteRenderer spriteRenderer;
     private Camera mainCamera;
     private int width;
     private int height;
+
+    private bool isTransitioning = false;
+    private float transitionTimer = 0f;
+    private Color initialBackgroundColor;
+    private Color[] initialStarColors;
+
+    private struct StarInfo
+    {
+        public int pixelIndex;
+        public float startFadeTime;
+        public Color originalColor;
+    }
+
+    private List<StarInfo> activeStars = new List<StarInfo>();
 
     void Start()
     {
@@ -32,7 +62,24 @@ public class NightSkyGenerator : MonoBehaviour
         CalculateScreenDimensions();
         InitializeSky();
         GenerateStars();
-        StartCoroutine(StarFlickerEffect());
+        initialBackgroundColor = backgroundColor;
+        initialStarColors = skyTexture.GetPixels();
+        
+        // Identifier toutes les étoiles actives
+        for (int i = 0; i < initialStarColors.Length; i++)
+        {
+            if (initialStarColors[i] != backgroundColor)
+            {
+                activeStars.Add(new StarInfo
+                {
+                    pixelIndex = i,
+                    startFadeTime = Random.Range(0, transitionDuration - starFadeOutDuration),
+                    originalColor = initialStarColors[i]
+                });
+            }
+        }
+
+        StartCoroutine(TransitionEffect());
     }
 
     void CalculateScreenDimensions()
@@ -60,6 +107,8 @@ public class NightSkyGenerator : MonoBehaviour
             filterMode = FilterMode.Point // Pour garder l'aspect pixel art
         };
 
+        
+
         // Remplir avec la couleur de fond
         Color[] pixels = new Color[width * height];
         for (int i = 0; i < pixels.Length; i++)
@@ -67,6 +116,9 @@ public class NightSkyGenerator : MonoBehaviour
             pixels[i] = backgroundColor;
         }
         skyTexture.SetPixels(pixels);
+
+        // Générer le fond avec nébuleuse
+        GenerateNebulaBackground();
 
         // Configurer le SpriteRenderer
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
@@ -80,6 +132,111 @@ public class NightSkyGenerator : MonoBehaviour
         
         // Ajuster l'ordre de rendu pour être sûr que le ciel est en arrière-plan
         spriteRenderer.sortingOrder = -1000;
+    }
+
+    void GenerateNebulaBackground()
+    {
+        Color[] pixels = skyTexture.GetPixels();
+        
+        float[,] noise1 = GeneratePerlinNoiseMap(nebulaScale, 1.0f);
+        float[,] noise2 = GeneratePerlinNoiseMap(nebulaScale * 2f, 0.5f);
+        float[,] maskNoise = GeneratePerlinNoiseMap(nebulaMaskScale, 0.8f);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float maskValue = maskNoise[x, y];
+                // Rendre la transition du masque plus nette mais pas trop brutale
+                float smoothMask = Mathf.SmoothStep(0, 1, (maskValue - nebulaMaskThreshold) * 2f);
+                
+                if (maskValue > nebulaMaskThreshold)
+                {
+                    float noiseValue = (noise1[x, y] + noise2[x, y]) * 0.5f;
+                    // Augmenter légèrement le contraste tout en gardant une transition douce
+                    noiseValue = Mathf.Pow(noiseValue, 1.7f);
+
+                    if (noiseValue > 0.4f) // Seuil légèrement plus élevé
+                    {
+                        Color nebulaColor;
+                        float colorBlend = noiseValue;
+                        
+                        // Transitions entre les couleurs avec des seuils plus marqués
+                        if (colorBlend < 0.33f)
+                        {
+                            float t = (colorBlend * 3f);
+                            t = Mathf.SmoothStep(0, 1, t);
+                            nebulaColor = Color.Lerp(nebulaColor1, nebulaColor2, t);
+                        }
+                        else if (colorBlend < 0.66f)
+                        {
+                            float t = (colorBlend - 0.33f) * 3f;
+                            t = Mathf.SmoothStep(0, 1, t);
+                            nebulaColor = Color.Lerp(nebulaColor2, nebulaColor3, t);
+                        }
+                        else
+                        {
+                            float t = (colorBlend - 0.66f) * 3f;
+                            t = Mathf.SmoothStep(0, 1, t);
+                            nebulaColor = Color.Lerp(nebulaColor3, nebulaColor1, t);
+                        }
+
+                        // Intensité plus prononcée mais toujours avec une transition douce
+                        float finalIntensity = nebulaIntensity * smoothMask * Mathf.Pow(noiseValue, 1.2f);
+                        
+                        // Mélange des couleurs avec plus de contraste
+                        Color currentColor = pixels[y * width + x];
+                        pixels[y * width + x] = new Color(
+                            currentColor.r + nebulaColor.r * finalIntensity,
+                            currentColor.g + nebulaColor.g * finalIntensity,
+                            currentColor.b + nebulaColor.b * finalIntensity,
+                            1f
+                        );
+                    }
+                }
+            }
+        }
+
+        skyTexture.SetPixels(pixels);
+    }
+
+    float[,] GeneratePerlinNoiseMap(float scale, float persistence)
+    {
+        float[,] noiseMap = new float[width, height];
+        
+        // Offset aléatoire pour variation
+        float offsetX = nebulaOffset.x;
+        float offsetY = nebulaOffset.y;
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                // Calculer les coordonnées du sample
+                float sampleX = (x + offsetX) / scale;
+                float sampleY = (y + offsetY) / scale;
+
+                // Générer plusieurs octaves de noise
+                float noise = 0f;
+                float amplitude = 1f;
+                float frequency = 1f;
+                
+                for (int i = 0; i < 3; i++) // 3 octaves
+                {
+                    noise += Mathf.PerlinNoise(
+                        sampleX * frequency,
+                        sampleY * frequency
+                    ) * amplitude;
+
+                    amplitude *= persistence;
+                    frequency *= 2;
+                }
+
+                noiseMap[x, y] = noise;
+            }
+        }
+
+        return noiseMap;
     }
 
     void GenerateStars()
@@ -187,5 +344,102 @@ public class NightSkyGenerator : MonoBehaviour
         numberOfStars = Mathf.Max(100, numberOfStars);
         numberOfBigStars = Mathf.Max(10, numberOfBigStars);
         numberOfHugeStars = Mathf.Max(2, numberOfHugeStars);
+
+        // Nouvelles validations
+        nebulaScale = Mathf.Max(1f, nebulaScale);
+        nebulaIntensity = Mathf.Clamp01(nebulaIntensity);
+    }
+
+    public void StartTransition()
+    {
+        if (!isTransitioning)
+        {
+            isTransitioning = true;
+            transitionTimer = 0f;
+            StartCoroutine(TransitionEffect());
+        }
+    }
+
+    IEnumerator TransitionEffect()
+    {
+        Color[] currentPixels = skyTexture.GetPixels();
+        
+        while (transitionTimer < transitionDuration)
+        {
+
+            transitionTimer += Time.deltaTime;
+            float globalProgress = transitionTimer / transitionDuration;
+
+            // Transition très lente du fond
+            backgroundColor = Color.Lerp(initialBackgroundColor, endBackgroundColor, globalProgress);
+
+            // Mettre à jour chaque étoile individuellement
+            foreach (StarInfo star in activeStars)
+            {
+                if (transitionTimer >= star.startFadeTime)
+                {
+                    float starProgress = (transitionTimer - star.startFadeTime) / starFadeOutDuration;
+                    starProgress = Mathf.Clamp01(starProgress);
+
+                    if (starProgress < 1)
+                    {
+                        // Faire scintiller l'étoile pendant qu'elle s'éteint
+                        float flicker = 1 + Mathf.Sin(transitionTimer * 5f) * 0.2f * (1 - starProgress);
+
+                        float redShift = (transitionDuration - transitionTimer) / transitionDuration * 2f;
+                        
+                        // Faire disparaître progressivement
+                        currentPixels[star.pixelIndex] = new Color(
+                            Mathf.Lerp(star.originalColor.r * redShift, backgroundColor.r, starProgress) * flicker,
+                            Mathf.Lerp(star.originalColor.g * 0f, backgroundColor.g, starProgress) * flicker,
+                            Mathf.Lerp(star.originalColor.b * 0f, backgroundColor.b, starProgress) * flicker,
+                            1f
+                        );
+                    }
+                    else
+                    {
+                        currentPixels[star.pixelIndex] = backgroundColor;
+                    }
+                }
+                else
+                {
+                    // Faire scintiller légèrement les étoiles qui n'ont pas encore commencé à s'éteindre
+                    // float flicker = 1 + Mathf.Sin(transitionTimer * 3f) * 0.1f;
+                    
+                    // Pour environ 30% des étoiles, faire dériver la couleur vers le rouge
+                    if (star.pixelIndex % 3 == 0) {
+                        float redShift = Random.Range(0f, 0.01f); // Oscillation lente
+                        currentPixels[star.pixelIndex] = new Color(
+                            star.originalColor.r + redShift,
+                            star.originalColor.g,
+                            star.originalColor.b,
+                            1f
+                        );
+                    } 
+                }
+            }
+
+            skyTexture.SetPixels(currentPixels);
+            skyTexture.Apply();
+
+            yield return null;
+        }
+
+        // État final
+        Color[] finalPixels = new Color[currentPixels.Length];
+        for (int i = 0; i < finalPixels.Length; i++)
+        {
+            finalPixels[i] = endBackgroundColor;
+        }
+        skyTexture.SetPixels(finalPixels);
+        skyTexture.Apply();
+
+        isTransitioning = false;
+    }
+
+    // Méthode pour vérifier si la transition est terminée
+    public bool IsTransitionComplete()
+    {
+        return !isTransitioning && transitionTimer >= transitionDuration;
     }
 }

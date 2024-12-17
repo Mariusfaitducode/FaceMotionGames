@@ -173,7 +173,7 @@ MonoBehaviour:
   voiceNova: {fileID: 1286196854}
   voiceNovaDelay: 26
   voiceStella: {fileID: 1818094373}
-  voiceStellaDelay: 10
+  voiceStellaDelay: 26
   musicIntro: {fileID: 841636073}
 --- !u!1 &59781555
 GameObject:
@@ -2443,7 +2443,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.6789, y: -0.4866, z: 100}
-  m_LocalScale: {x: 19.34651, y: 11.219409, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1773370781}
@@ -2460,9 +2460,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd29f8d80c22144bb4324985f060b08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numberOfStars: 10000
-  numberOfBigStars: 100
-  numberOfHugeStars: 20
+  numberOfStars: 12000
+  numberOfBigStars: 6000
+  numberOfHugeStars: 3000
   backgroundColor: {r: 0.02, g: 0.02, b: 0.05, a: 1}
   starColors:
   - {r: 1, g: 1, b: 1, a: 1}
@@ -2470,6 +2470,17 @@ MonoBehaviour:
   - {r: 1, g: 0.9, b: 0.8, a: 1}
   minFlickerSpeed: 0.5
   maxFlickerSpeed: 2
+  nebulaColor1: {r: 0.21386203, g: 0.033775374, b: 0.31132078, a: 0.15686275}
+  nebulaColor2: {r: 0.016509444, g: 0.17688677, b: 0.5, a: 0.20784314}
+  nebulaColor3: {r: 0.8509804, g: 0.7592907, b: 0.63529414, a: 0.1}
+  nebulaScale: 200
+  nebulaMaskScale: 500
+  nebulaIntensity: 0.14
+  nebulaOffset: {x: 0, y: 0}
+  nebulaMaskThreshold: 0.8
+  transitionDuration: 90
+  endBackgroundColor: {r: 0.01, g: 0.01, b: 0.02, a: 1}
+  starFadeOutDuration: 3
 --- !u!1 &2089583836
 GameObject:
   m_ObjectHideFlags: 0
@@ -2575,63 +2586,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: abb41c8c565bdb448aedf3d729fd1919, type: 3}
---- !u!1001 &8645643083460237057
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1171819365268932370, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_Name
-      value: Isometric Diamond (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -12.0778
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -4.735
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2586385185086617917, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 132d0f02ac075714f8bdbb33b76346ff, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -2646,4 +2600,3 @@ SceneRoots:
   - {fileID: 1773370781}
   - {fileID: 1688245870}
   - {fileID: 144961265}
-  - {fileID: 8645643083460237057}
