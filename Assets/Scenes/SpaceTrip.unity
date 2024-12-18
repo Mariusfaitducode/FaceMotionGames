@@ -1539,17 +1539,17 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.40544358
-      value: 0.0030123862
-      inSlope: 0.012186776
-      outSlope: 0.012186776
+      time: 0.32472384
+      value: 0.08942461
+      inSlope: 0.25460684
+      outSlope: 0.25460684
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.17883822
-      outWeight: 1
+      inWeight: 0.33499342
+      outWeight: 0.36018002
     - serializedVersion: 3
-      time: 0.59110063
-      value: 0.26711014
+      time: 0.5890825
+      value: 0.30414718
       inSlope: 1.8867294
       outSlope: 1.8867294
       tangentMode: 0
@@ -1559,21 +1559,21 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.7126227
       value: 0.5827482
-      inSlope: 3.0686615
-      outSlope: 3.0686615
+      inSlope: 2.033342
+      outSlope: 2.033342
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.3137865
       outWeight: 1
     - serializedVersion: 3
-      time: 0.7702024
+      time: 0.8139524
       value: 0.8103378
-      inSlope: 2.4348128
-      outSlope: 2.4348128
+      inSlope: 1.7598042
+      outSlope: 1.7598042
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.29623646
-      outWeight: 0.36252323
+      outWeight: 0.7008236
     - serializedVersion: 3
       time: 1
       value: 1
@@ -1674,6 +1674,36 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  starTransitionDuration: 180
+  starEndColor: {r: 0.01, g: 0.01, b: 0.02, a: 1}
+  starDistributionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  starFadeOutDuration: 3
+  starRedshiftIntensity: 2
+  starFlickerSpeed: 0.01
+  starFlickerIntensity: 0.8
 --- !u!1 &1382883573
 GameObject:
   m_ObjectHideFlags: 0
@@ -2752,9 +2782,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd29f8d80c22144bb4324985f060b08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numberOfStars: 12000
-  numberOfBigStars: 6000
-  numberOfHugeStars: 3000
+  numberOfStars: 100
+  numberOfBigStars: 12000
+  numberOfHugeStars: 8000
   backgroundColor: {r: 0.02, g: 0.02, b: 0.05, a: 1}
   starColors:
   - {r: 1, g: 1, b: 1, a: 1}
@@ -2762,17 +2792,14 @@ MonoBehaviour:
   - {r: 1, g: 0.9, b: 0.8, a: 1}
   minFlickerSpeed: 0.5
   maxFlickerSpeed: 2
-  nebulaColor1: {r: 0.21386203, g: 0.033775374, b: 0.31132078, a: 0.15686275}
-  nebulaColor2: {r: 0.016509444, g: 0.17688677, b: 0.5, a: 0.20784314}
+  nebulaColor1: {r: 0.14276557, g: 0.018600922, b: 0.20754719, a: 0.15686275}
+  nebulaColor2: {r: 0.007787468, g: 0.11438785, b: 0.3301887, a: 0.15294118}
   nebulaColor3: {r: 0.8509804, g: 0.7592907, b: 0.63529414, a: 0.1}
   nebulaScale: 200
   nebulaMaskScale: 500
   nebulaIntensity: 0.14
   nebulaOffset: {x: 0, y: 0}
   nebulaMaskThreshold: 0.8
-  transitionDuration: 70
-  endBackgroundColor: {r: 0.01, g: 0.01, b: 0.02, a: 1}
-  starFadeOutDuration: 3
 --- !u!1 &2089583836
 GameObject:
   m_ObjectHideFlags: 0

@@ -19,9 +19,9 @@ public class IntroductionManager : MonoBehaviour
     [SerializeField] private float stellaStartDelay = 26f;
     [SerializeField] private float transitionCommandCenterDuration = 16f;
     
-    [Header("Transition Settings")]
+    [Header("Zoom Transition Settings")]
     [SerializeField] private float zoomDuration = 30f; // 10s Nova + 20s transition
-    [SerializeField] private float initialCommandCenterScale = 0.01f;
+    [SerializeField] private float initialCommandCenterScale = 0.0001f;
     [SerializeField] private float finalCommandCenterScale = 1f;
     [SerializeField] private float skyScaleMultiplier = 2f;
     [SerializeField] private Vector3 finalCommandCenterPosition;
@@ -48,6 +48,21 @@ public class IntroductionManager : MonoBehaviour
         new Keyframe(0, 0, 0, 0),
         new Keyframe(1, 1, 2, 0)
     );
+
+    [Header("Star Transition Settings")]
+    [SerializeField] private float starTransitionDuration = 70f;
+    [SerializeField] private Color starEndColor = new Color(0.01f, 0.01f, 0.02f, 1f);
+    
+    [SerializeField] private AnimationCurve starDistributionCurve = new AnimationCurve(
+        new Keyframe(0, 0, 2, 2),       // Départ rapide
+        new Keyframe(0.3f, 0.7f),       // Beaucoup d'étoiles au début
+        new Keyframe(0.7f, 0.9f),       // Ralentissement
+        new Keyframe(1, 1, 0.2f, 0)     // Fin progressive
+    );
+    [SerializeField] private float starFadeOutDuration = 3f;
+    [SerializeField] private float starRedshiftIntensity = 2f;
+    [SerializeField] private float starFlickerSpeed = 5f;
+    [SerializeField] private float starFlickerIntensity = 0.2f;
 
     private float originalMusicVolume;
     private Vector3 initialCommandCenterPosition;
@@ -99,6 +114,25 @@ public class IntroductionManager : MonoBehaviour
         }
     }
 
+    void StartNightSkyTransition()
+    {
+        if (nightSky != null)
+        {
+            var settings = new NightSkyGenerator.StarTransitionSettings
+            {
+                duration = starTransitionDuration,
+                endColor = starEndColor,
+                distributionCurve = starDistributionCurve,
+                starFadeOutDuration = starFadeOutDuration,
+                redshiftIntensity = starRedshiftIntensity,
+                flickerSpeed = starFlickerSpeed,
+                flickerIntensity = starFlickerIntensity
+            };
+
+            nightSky.StartTransition(settings);
+        }
+    }
+
     IEnumerator PlayIntroSequence()
     {
         yield return new WaitForSeconds(initialDelay);
@@ -107,7 +141,7 @@ public class IntroductionManager : MonoBehaviour
 
         if (nightSky != null)
         {
-            nightSky.StartTransition();
+            StartNightSkyTransition();
             Debug.Log("Night sky transition started");
         }
 

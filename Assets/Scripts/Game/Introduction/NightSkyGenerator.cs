@@ -31,10 +31,10 @@ public class NightSkyGenerator : MonoBehaviour
     [SerializeField] private Vector2 nebulaOffset;
     [SerializeField] private float nebulaMaskThreshold = 0.6f; // Seuil pour le masque
 
-    [Header("Transition Settings")]
-    [SerializeField] private float transitionDuration = 90f; // 1 minute 30
-    [SerializeField] private Color endBackgroundColor = new Color(0.01f, 0.01f, 0.02f, 1f);
-    [SerializeField] private float starFadeOutDuration = 3f; // Durée de fade pour chaque étoile
+    // [Header("Transition Settings")]
+    // [SerializeField] private float transitionDuration = 90f; // 1 minute 30
+    // [SerializeField] private Color endBackgroundColor = new Color(0.01f, 0.01f, 0.02f, 1f);
+    // [SerializeField] private float starFadeOutDuration = 3f; // Durée de fade pour chaque étoile
 
     private Texture2D skyTexture;
     private SpriteRenderer spriteRenderer;
@@ -52,12 +52,29 @@ public class NightSkyGenerator : MonoBehaviour
         public int pixelIndex;
         public float startFadeTime;
         public Color originalColor;
+        public bool isSpecialStar;
+        public int x, y;
+        public int size;        // 1 pour petite, 2 pour moyenne, 3 pour grande
+        public List<int> allPixels; // Tous les indices des pixels de l'étoile
     }
 
     private List<StarInfo> activeStars = new List<StarInfo>();
 
     private Vector3 initialPosition;
     private Coroutine translationCoroutine;
+
+    public class StarTransitionSettings
+    {
+        public float duration;
+        public Color endColor;
+        public AnimationCurve distributionCurve;
+        public float starFadeOutDuration;
+        public float redshiftIntensity;
+        public float flickerSpeed;
+        public float flickerIntensity;
+    }
+
+    private StarTransitionSettings transitionSettings;
 
     void Start()
     {
@@ -78,20 +95,6 @@ public class NightSkyGenerator : MonoBehaviour
         GenerateStars();
         initialBackgroundColor = backgroundColor;
         initialStarColors = skyTexture.GetPixels();
-        
-        // Identifier toutes les étoiles actives
-        for (int i = 0; i < initialStarColors.Length; i++)
-        {
-            if (initialStarColors[i] != backgroundColor)
-            {
-                activeStars.Add(new StarInfo
-                {
-                    pixelIndex = i,
-                    startFadeTime = Random.Range(0, transitionDuration - starFadeOutDuration),
-                    originalColor = initialStarColors[i]
-                });
-            }
-        }
     }
 
     void CalculateScreenDimensions()
@@ -253,17 +256,31 @@ public class NightSkyGenerator : MonoBehaviour
 
     void GenerateStars()
     {
-        // Générer les petites étoiles (1x1)
+        activeStars.Clear();
+
+        // Petites étoiles (1x1)
         for (int i = 0; i < numberOfStars; i++)
         {
             int x = Random.Range(0, width);
             int y = Random.Range(0, height);
+            int pixelIndex = y * width + x;
             Color starColor = starColors[Random.Range(0, starColors.Length)];
             starColor.a = Random.Range(0.5f, 1f);
             skyTexture.SetPixel(x, y, starColor);
+
+            activeStars.Add(new StarInfo
+            {
+                pixelIndex = pixelIndex,
+                startFadeTime = 0,
+                originalColor = starColor,
+                x = x,
+                y = y,
+                size = 1,
+                allPixels = new List<int> { pixelIndex }
+            });
         }
 
-        // Générer les étoiles moyennes (2x2)
+        // Étoiles moyennes (2x2)
         for (int i = 0; i < numberOfBigStars; i++)
         {
             int x = Random.Range(1, width-1);
@@ -271,10 +288,33 @@ public class NightSkyGenerator : MonoBehaviour
             Color starColor = starColors[Random.Range(0, starColors.Length)];
             starColor.a = Random.Range(0.6f, 1f);
             
-            DrawBigStar(x, y, starColor);
+            List<int> pixels = new List<int>();
+            for (int dx = -1; dx <= 0; dx++)
+            {
+                for (int dy = -1; dy <= 0; dy++)
+                {
+                    int px = x + dx;
+                    int py = y + dy;
+                    pixels.Add(py * width + px);
+                    Color pixelColor = starColor;
+                    if (dx != 0 && dy != 0) pixelColor.a *= 0.7f;
+                    skyTexture.SetPixel(px, py, pixelColor);
+                }
+            }
+
+            activeStars.Add(new StarInfo
+            {
+                pixelIndex = y * width + x,
+                startFadeTime = 0,
+                originalColor = starColor,
+                x = x,
+                y = y,
+                size = 2,
+                allPixels = pixels
+            });
         }
 
-        // Générer les grandes étoiles (3x3)
+        // Grandes étoiles (3x3)
         for (int i = 0; i < numberOfHugeStars; i++)
         {
             int x = Random.Range(2, width-2);
@@ -282,43 +322,36 @@ public class NightSkyGenerator : MonoBehaviour
             Color starColor = starColors[Random.Range(0, starColors.Length)];
             starColor.a = Random.Range(0.7f, 1f);
             
-            DrawHugeStar(x, y, starColor);
+            List<int> pixels = new List<int>();
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    int px = x + dx;
+                    int py = y + dy;
+                    pixels.Add(py * width + px);
+                    Color pixelColor = starColor;
+                    if (Mathf.Abs(dx) + Mathf.Abs(dy) == 2)
+                        pixelColor.a *= 0.5f;
+                    else if (dx != 0 || dy != 0)
+                        pixelColor.a *= 0.8f;
+                    skyTexture.SetPixel(px, py, pixelColor);
+                }
+            }
+
+            activeStars.Add(new StarInfo
+            {
+                pixelIndex = y * width + x,
+                startFadeTime = 0,
+                originalColor = starColor,
+                x = x,
+                y = y,
+                size = 3,
+                allPixels = pixels
+            });
         }
 
         skyTexture.Apply();
-    }
-
-    void DrawBigStar(int centerX, int centerY, Color color)
-    {
-        for (int x = -1; x <= 0; x++)
-        {
-            for (int y = -1; y <= 0; y++)
-            {
-                Color pixelColor = color;
-                if (x != 0 && y != 0) pixelColor.a *= 0.7f; // Coins légèrement plus transparents
-                skyTexture.SetPixel(centerX + x, centerY + y, pixelColor);
-            }
-        }
-    }
-
-    void DrawHugeStar(int centerX, int centerY, Color color)
-    {
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                Color pixelColor = color;
-                if (Mathf.Abs(x) + Mathf.Abs(y) == 2) // Coins
-                {
-                    pixelColor.a *= 0.5f;
-                }
-                else if (x != 0 || y != 0) // Pixels autour du centre
-                {
-                    pixelColor.a *= 0.8f;
-                }
-                skyTexture.SetPixel(centerX + x, centerY + y, pixelColor);
-            }
-        }
     }
 
     IEnumerator StarFlickerEffect()
@@ -362,12 +395,46 @@ public class NightSkyGenerator : MonoBehaviour
         nebulaIntensity = Mathf.Clamp01(nebulaIntensity);
     }
 
-    public void StartTransition()
+    public void StartTransition(StarTransitionSettings settings)
     {
         if (!isTransitioning)
         {
+            transitionSettings = settings;
             isTransitioning = true;
             transitionTimer = 0f;
+
+            // Créer une liste de tous les indices d'étoiles
+            List<int> starIndices = new List<int>(activeStars.Count);
+            for (int i = 0; i < activeStars.Count; i++)
+            {
+                starIndices.Add(i);
+            }
+
+            // Mélanger la liste pour une sélection aléatoire
+            for (int i = starIndices.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                int temp = starIndices[i];
+                starIndices[i] = starIndices[j];
+                starIndices[j] = temp;
+            }
+
+            // Assigner les temps de départ selon la courbe
+            for (int i = 0; i < starIndices.Count; i++)
+            {
+                var star = activeStars[starIndices[i]];
+                
+                // Calculer le temps de départ basé sur la position dans la séquence
+                float normalizedPosition = i / (float)(starIndices.Count - 1);
+                float startTime = settings.distributionCurve.Evaluate(normalizedPosition) * (settings.duration - settings.starFadeOutDuration);
+                
+                star.startFadeTime = startTime;
+                Debug.Log($"Star {i} startFadeTime: {star.startFadeTime}");
+                star.isSpecialStar = Random.value < 0.1f;
+                
+                activeStars[starIndices[i]] = star;
+            }
+
             StartCoroutine(TransitionEffect());
         }
     }
@@ -375,62 +442,65 @@ public class NightSkyGenerator : MonoBehaviour
     IEnumerator TransitionEffect()
     {
         Color[] currentPixels = skyTexture.GetPixels();
-
-        isTransitioning = true;
         
-        while (transitionTimer < transitionDuration && isTransitioning)
+        while (transitionTimer < transitionSettings.duration && isTransitioning)
         {
+            transitionTimer += Time.fixedDeltaTime;
 
-            transitionTimer += Time.deltaTime;
-            float globalProgress = transitionTimer / transitionDuration;
-
-            // Transition très lente du fond
-            backgroundColor = Color.Lerp(initialBackgroundColor, endBackgroundColor, globalProgress);
-
-            // Mettre à jour chaque étoile individuellement
             foreach (StarInfo star in activeStars)
             {
+                // Effacer tous les pixels de l'étoile
+                // foreach (int pixel in star.allPixels)
+                // {
+                //     currentPixels[pixel] = backgroundColor;
+                // }
+
                 if (transitionTimer >= star.startFadeTime)
                 {
-                    float starProgress = (transitionTimer - star.startFadeTime) / starFadeOutDuration;
+                    float starProgress = (transitionTimer - star.startFadeTime) / transitionSettings.starFadeOutDuration;
                     starProgress = Mathf.Clamp01(starProgress);
 
                     if (starProgress < 1)
                     {
-                        // Faire scintiller l'étoile pendant qu'elle s'éteint
-                        float flicker = 1 + Mathf.Sin(transitionTimer * 5f) * 0.2f * (1 - starProgress);
+                        if (star.isSpecialStar)
+                        {
 
-                        float redShift = (transitionDuration - transitionTimer) / transitionDuration * 2f;
-                        
-                        // Faire disparaître progressivement
-                        currentPixels[star.pixelIndex] = new Color(
-                            Mathf.Lerp(star.originalColor.r * redShift, backgroundColor.r, starProgress) * flicker,
-                            Mathf.Lerp(star.originalColor.g * 0f, backgroundColor.g, starProgress) * flicker,
-                            Mathf.Lerp(star.originalColor.b * 0f, backgroundColor.b, starProgress) * flicker,
-                            1f
-                        );
+                            float flickerSpeed = Random.Range(0.5f, 1.5f) * transitionSettings.flickerSpeed;
+                            // Effet de scintillement plus intense
+                            float flicker = 1 + Mathf.Sin(transitionTimer * flickerSpeed) * transitionSettings.flickerIntensity * (1 - starProgress);
+                            Color starColor = new Color(
+                                star.originalColor.r * 2f * flicker, // Multiplier par 2 pour des couleurs plus vives
+                                star.originalColor.g * 1f * flicker,
+                                star.originalColor.b * 1f * flicker,
+                                1f
+                            );
+
+                            // Appliquer l'étoile centrale avec une couleur plus vive
+                            // currentPixels[star.pixelIndex] = Color.Lerp(starColor, backgroundColor, starProgress);
+
+                            // Halo plus grand
+                            ApplyStarHalo(currentPixels, star.x, star.y, starColor, starProgress, flicker);
+                        }
+                        else
+                        {
+                            // Faire disparaître progressivement tous les pixels
+                            foreach (int pixel in star.allPixels)
+                            {
+                                currentPixels[pixel] = Color.Lerp(star.originalColor, backgroundColor, starProgress);
+                            }
+                        }
                     }
-                    else
-                    {
-                        currentPixels[star.pixelIndex] = backgroundColor;
-                    }
+                    // else
+                    // {
+                    //     currentPixels[star.pixelIndex] = backgroundColor;
+                    // }
                 }
-                else
-                {
-                    // Faire scintiller légèrement les étoiles qui n'ont pas encore commencé à s'éteindre
-                    // float flicker = 1 + Mathf.Sin(transitionTimer * 3f) * 0.1f;
-                    
-                    // Pour environ 30% des étoiles, faire dériver la couleur vers le rouge
-                    if (star.pixelIndex % 3 == 0) {
-                        float redShift = Random.Range(0f, 0.01f); // Oscillation lente
-                        currentPixels[star.pixelIndex] = new Color(
-                            star.originalColor.r + redShift,
-                            star.originalColor.g,
-                            star.originalColor.b,
-                            1f
-                        );
-                    } 
-                }
+                // else{
+                //     foreach (int pixel in star.allPixels)
+                //     {
+                //         currentPixels[pixel] = star.originalColor;
+                //     }
+                // }
             }
 
             skyTexture.SetPixels(currentPixels);
@@ -439,18 +509,45 @@ public class NightSkyGenerator : MonoBehaviour
             yield return null;
         }
 
-        // État final
-        // Color[] finalPixels = new Color[currentPixels.Length];
-        // for (int i = 0; i < finalPixels.Length; i++)
-        // {
-        //     finalPixels[i] = endBackgroundColor;
-        // }
-        // skyTexture.SetPixels(finalPixels);
-        // skyTexture.Apply();
-
         isTransitioning = false;
     }
 
+    private void ApplyStarHalo(Color[] pixels, int centerX, int centerY, Color starColor, float progress, float intensity)
+    {
+        int size = Random.Range(8, 10); // Taille de base du halo
+        
+        for (int xOffset = -size; xOffset <= size; xOffset++)
+        {
+            for (int yOffset = -size; yOffset <= size; yOffset++)
+            {
+                if (xOffset == 0 && yOffset == 0) continue;
+
+                int x = centerX + xOffset;
+                int y = centerY + yOffset;
+                
+                if (x >= 0 && x < width && y >= 0 && y < height)
+                {
+                    int index = y * width + x;
+                    float distance = Mathf.Sqrt(xOffset * xOffset + yOffset * yOffset);
+                    float haloIntensity = intensity * (1 - distance / (size + 1)) * 0.5f;
+                    
+                    // Utiliser la couleur de l'étoile pour le halo
+                    Color haloColor = new Color(
+                        starColor.r * haloIntensity,
+                        starColor.g * haloIntensity,
+                        starColor.b * haloIntensity,
+                        1f
+                    );
+
+                    pixels[index] = Color.Lerp(
+                        Color.Lerp(backgroundColor, haloColor, haloIntensity),
+                        backgroundColor,
+                        progress
+                    );
+                }
+            }
+        }
+    }
 
     public void StopTransition()
     {
@@ -461,7 +558,7 @@ public class NightSkyGenerator : MonoBehaviour
     // Méthode pour vérifier si la transition est terminée
     public bool IsTransitionComplete()
     {
-        return !isTransitioning && transitionTimer >= transitionDuration;
+        return !isTransitioning && transitionTimer >= transitionSettings.duration;
     }
 
     public void InitializePositions()
