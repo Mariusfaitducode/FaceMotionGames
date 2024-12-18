@@ -8,7 +8,11 @@ public class IntroductionManager : MonoBehaviour
     [SerializeField] private AudioSource voiceNova;
     [SerializeField] private AudioSource voiceStella;
     [SerializeField] private AudioSource musicIntro;
-    
+    // [SerializeField] private AudioSource musicWaitingRoom;
+
+    [Header("Next Scene")]
+    [SerializeField] private GameObject waitingRoom;
+
     [Header("Visual Components")]
     [SerializeField] private NightSkyGenerator nightSky;
     [SerializeField] private SpriteRenderer commandCenterRenderer; // Changé pour SpriteRenderer
@@ -16,8 +20,8 @@ public class IntroductionManager : MonoBehaviour
     [Header("Timing Settings")]
     [SerializeField] private float initialDelay = 2f;
     [SerializeField] private float novaStartDelay = 26f;
-    [SerializeField] private float stellaStartDelay = 26f;
-    [SerializeField] private float transitionCommandCenterDuration = 16f;
+    // [SerializeField] private float stellaStartDelay = 26f;
+    // [SerializeField] private float transitionCommandCenterDuration = 16f;
     
     [Header("Zoom Transition Settings")]
     [SerializeField] private float zoomDuration = 30f; // 10s Nova + 20s transition
@@ -74,10 +78,21 @@ public class IntroductionManager : MonoBehaviour
     private Vector3 commandCenterBaseScale;
     private Vector3 commandCenterBasePosition;
 
+    private bool isSkipping = false;
+    private Coroutine introSequenceCoroutine;
+
     void Start()
     {
         InitializeScene();
-        StartCoroutine(PlayIntroSequence());
+        introSequenceCoroutine = StartCoroutine(PlayIntroSequence());
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && !isSkipping)
+        {
+            StartCoroutine(SkipIntroduction());
+        }
     }
 
     void InitializeScene()
@@ -178,7 +193,7 @@ public class IntroductionManager : MonoBehaviour
         
 
         // Attendre la fin du zoom
-        while (isZooming)
+        while (isZooming && !isSkipping)
         {
             yield return null;
         }
@@ -213,7 +228,17 @@ public class IntroductionManager : MonoBehaviour
         yield return StartCoroutine(FadeMusicVolume(musicIntro.volume, originalMusicVolume, 1f));
 
         // Transition finale
-        yield return StartCoroutine(FinalTransition());
+        yield return StartCoroutine(FinalTransition(finalTransitionDuration));
+
+
+        // Vérifier si la musique a dépassé 3 minutes
+        if (musicIntro != null && musicIntro.time >= 180f)
+        {
+            musicIntro.Stop();
+            Debug.Log("Music stopped after 3 minutes");
+        }
+
+        LoadWaitingRoom();
     }
 
     IEnumerator FadeMusicVolume(float startVolume, float targetVolume, float duration)
@@ -231,45 +256,6 @@ public class IntroductionManager : MonoBehaviour
         
         musicIntro.volume = targetVolume;
     }
-
-    // IEnumerator FadeCommandCenter(float startAlpha, float targetAlpha, float duration)
-    // {
-    //     if (commandCenterRenderer == null) yield break;
-
-    //     Debug.Log($"Starting command center transition. Duration: {duration} seconds");
-    //     float elapsed = 0;
-    //     Color startColor = commandCenterRenderer.color;
-        
-    //     while (elapsed < duration)
-    //     {
-    //         elapsed += Time.deltaTime;
-    //         float normalizedTime = elapsed / duration;
-            
-    //         commandCenterRenderer.color = new Color(
-    //             startColor.r,
-    //             startColor.g,
-    //             startColor.b,
-    //             Mathf.Lerp(startAlpha, targetAlpha, normalizedTime)
-    //         );
-
-    //         // Log pour déboguer la progression
-    //         if (elapsed % 1 < Time.deltaTime) // Log chaque seconde environ
-    //         {
-    //             Debug.Log($"Command center transition progress: {elapsed}/{duration} seconds - Alpha: {commandCenterRenderer.color.a}");
-    //         }
-
-    //         yield return null;
-    //     }
-        
-    //     // S'assurer que la valeur finale est exacte
-    //     commandCenterRenderer.color = new Color(
-    //         startColor.r,
-    //         startColor.g,
-    //         startColor.b,
-    //         targetAlpha
-    //     );
-    //     Debug.Log("Command center transition completed");
-    // }
 
     IEnumerator ZoomTransition(float duration)
     {
@@ -325,7 +311,7 @@ public class IntroductionManager : MonoBehaviour
         isZooming = false;
     }
 
-    IEnumerator FinalTransition()
+    IEnumerator FinalTransition(float duration)
     {
         float elapsed = 0;
         Vector3 startScale = commandCenterRenderer.transform.localScale;
@@ -334,13 +320,13 @@ public class IntroductionManager : MonoBehaviour
         // Démarrer la translation du ciel
         if (nightSky != null)
         {
-            nightSky.TranslateSky(skyFinalOffset, finalTransitionDuration, finalTransitionCurve);
+            nightSky.TranslateSky(skyFinalOffset, duration, finalTransitionCurve);
         }
 
-        while (elapsed < finalTransitionDuration)
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float progress = elapsed / finalTransitionDuration;
+            float progress = elapsed / duration;
             float curvedProgress = finalTransitionCurve.Evaluate(progress);
 
             // Déplacer et redimensionner le centre de commande
@@ -360,5 +346,79 @@ public class IntroductionManager : MonoBehaviour
         }
 
         Debug.Log("Final transition completed");
+    }
+
+    IEnumerator SkipIntroduction()
+    {
+        isSkipping = true;
+
+        // Arrêter la séquence en cours
+        if (introSequenceCoroutine != null)
+        {
+            StopCoroutine(introSequenceCoroutine);
+        }
+
+        // Arrêter tous les sons
+        if (voiceNova != null) voiceNova.Stop();
+        if (voiceStella != null) voiceStella.Stop();
+        if (musicIntro != null) musicIntro.volume = originalMusicVolume;
+
+        // Arrêter la transition des étoiles en cours
+        if (nightSky != null)
+        {
+            nightSky.StopTransition();
+        }
+
+        // Appliquer directement l'état final des étoiles
+        var finalStarSettings = new NightSkyGenerator.StarTransitionSettings
+        {
+            duration = 1f, // Transition rapide
+            endColor = starEndColor,
+            distributionCurve = starDistributionCurve,
+            starFadeOutDuration = 1f,
+            redshiftIntensity = starRedshiftIntensity,
+            flickerSpeed = starFlickerSpeed,
+            flickerIntensity = starFlickerIntensity
+        };
+        nightSky.StartTransition(finalStarSettings);
+        
+
+        // Attendre que la transition rapide des étoiles soit terminée
+        yield return new WaitForSeconds(1f);
+
+
+        // Placer directement le centre de commande à sa position finale
+        if (commandCenterRenderer != null)
+        {
+            commandCenterRenderer.color = Color.white;
+            // commandCenterRenderer.transform.localScale = Vector3.one * finalCommandCenterScale;
+            // commandCenterRenderer.transform.position = finalCommandCenterPosition;
+        }
+
+
+        StartCoroutine(ZoomTransition(2f));
+
+        yield return new WaitForSeconds(2f);
+
+
+
+        // Transition finale
+        yield return StartCoroutine(FinalTransition(3f));
+
+        Debug.Log("Introduction skipped");
+        isSkipping = false;
+
+        if (musicIntro != null)
+        {
+            yield return StartCoroutine(FadeMusicVolume(musicIntro.volume, 0f, 3f));
+            Debug.Log("Music stopped after 3 minutes");
+        }
+
+        LoadWaitingRoom();
+    }
+
+
+    void LoadWaitingRoom(){
+        waitingRoom.SetActive(true);
     }
 } 

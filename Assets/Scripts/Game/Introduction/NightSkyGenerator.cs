@@ -429,7 +429,7 @@ public class NightSkyGenerator : MonoBehaviour
                 float startTime = settings.distributionCurve.Evaluate(normalizedPosition) * (settings.duration - settings.starFadeOutDuration);
                 
                 star.startFadeTime = startTime;
-                Debug.Log($"Star {i} startFadeTime: {star.startFadeTime}");
+                // Debug.Log($"Star {i} startFadeTime: {star.startFadeTime}");
                 star.isSpecialStar = Random.value < 0.1f;
                 
                 activeStars[starIndices[i]] = star;
@@ -483,10 +483,13 @@ public class NightSkyGenerator : MonoBehaviour
                         }
                         else
                         {
+                            int index = Mathf.Max(star.pixelIndex - 2 * width - 2, 0);
+
+                            Color originalBackgroundColor = currentPixels[index];
                             // Faire disparaître progressivement tous les pixels
                             foreach (int pixel in star.allPixels)
                             {
-                                currentPixels[pixel] = Color.Lerp(star.originalColor, backgroundColor, starProgress);
+                                currentPixels[pixel] = Color.Lerp(star.originalColor, originalBackgroundColor, starProgress);
                             }
                         }
                     }
@@ -514,7 +517,8 @@ public class NightSkyGenerator : MonoBehaviour
 
     private void ApplyStarHalo(Color[] pixels, int centerX, int centerY, Color starColor, float progress, float intensity)
     {
-        int size = Random.Range(8, 10); // Taille de base du halo
+        int size = Random.Range(8, 10);
+        Color[] initialPixels = initialStarColors; // Utiliser les couleurs initiales sauvegardées
         
         for (int xOffset = -size; xOffset <= size; xOffset++)
         {
@@ -531,7 +535,6 @@ public class NightSkyGenerator : MonoBehaviour
                     float distance = Mathf.Sqrt(xOffset * xOffset + yOffset * yOffset);
                     float haloIntensity = intensity * (1 - distance / (size + 1)) * 0.5f;
                     
-                    // Utiliser la couleur de l'étoile pour le halo
                     Color haloColor = new Color(
                         starColor.r * haloIntensity,
                         starColor.g * haloIntensity,
@@ -539,9 +542,11 @@ public class NightSkyGenerator : MonoBehaviour
                         1f
                     );
 
+                    // Utiliser la couleur initiale du pixel au lieu du backgroundColor
+                    Color originalPixelColor = initialPixels[index];
                     pixels[index] = Color.Lerp(
-                        Color.Lerp(backgroundColor, haloColor, haloIntensity),
-                        backgroundColor,
+                        Color.Lerp(originalPixelColor, haloColor, haloIntensity),
+                        originalPixelColor,
                         progress
                     );
                 }

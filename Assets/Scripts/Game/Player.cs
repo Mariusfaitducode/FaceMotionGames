@@ -33,18 +33,17 @@ public class Player : MonoBehaviour
     private GameObject attractorPlanet;
     private Vector3 originalScale;
 
+    // private bool notMovingTest = false;
+
+    private bool isJetpackGame = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
 
+
         initialPosition = transform.position;
         originalScale = transform.localScale;
-        
-        // GameController gameController = FindObjectOfType<GameController>();
-        // if (gameController != null)
-        // {
-        //     gameController.onMouthStateEvent.AddListener(HandleMouthState);
-        // }
     }
 
     public void SetFaceId(int id)
@@ -67,18 +66,12 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void HandleMouthState(int id, bool isOpen)
-    {
-        // Ne réagir qu'aux événements correspondant à notre ID
-        if (id == faceId)
-        {
-            this.isMouthOpen = isOpen;
-        }
-    }
-
     public void SetMouthState(bool isOpen)
     {
-        isMouthOpen = isOpen;
+        if (isJetpackGame){
+            Debug.Log("Setting mouth state for player in Jetpack game");
+            isMouthOpen = isOpen;
+        }
     }
 
     void FixedUpdate()
@@ -129,6 +122,7 @@ public class Player : MonoBehaviour
         }
         else if (isMouthOpen)
         {
+            Debug.Log("Player " + faceId + " is moving");
             rb.velocity = new Vector2(rb.velocity.x, jetpackSpeed);
         }
     }
@@ -186,28 +180,17 @@ public class Player : MonoBehaviour
     {
         // Appliquer la texture
         playerAvatar.texture = texture;
-        
-        // S'assurer que l'image est bien circulaire
-        // playerAvatar.gameObject.AddComponent<UnityEngine.UI.Mask>();
-        
-        // // Créer un GameObject enfant pour le masque s'il n'existe pas déjà
-        // Transform maskTransform = playerAvatar.transform.Find("CircleMask");
-        // if (maskTransform == null)
-        // {
-        //     // Ajouter un composant Mask au RawImage lui-même
-        //     UnityEngine.UI.RawImage rawImage = playerAvatar;
-        //     rawImage.maskable = true;
+    }
 
-        //     // Créer un masque sur le parent
-        //     UnityEngine.UI.Mask mask = playerAvatar.gameObject.AddComponent<UnityEngine.UI.Mask>();
-        //     mask.showMaskGraphic = true;
+    public void StartJetpackGame(){
 
-        //     // Ajouter une Image sur le même GameObject que le RawImage pour définir la forme du masque
-        //     UnityEngine.UI.Image maskImage = playerAvatar.gameObject.AddComponent<UnityEngine.UI.Image>();
-        //     maskImage.sprite = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-        //     maskImage.color = Color.white;
-        //     maskImage.preserveAspect = true;
-        //     maskImage.raycastTarget = false;
-        // }
+        Debug.Log("Starting jetpack game for player " + faceId);
+
+        GetComponent<Animator>().enabled = false;
+
+        rb.velocity = Vector2.zero;
+
+
+        isJetpackGame = true;
     }
 }

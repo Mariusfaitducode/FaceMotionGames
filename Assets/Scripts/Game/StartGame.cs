@@ -8,30 +8,34 @@ using TMPro;
 public class StartGame : MonoBehaviour
 {
 
-    public bool startGame = false;
-    private Dictionary<int, float> mouthOpenTimers = new Dictionary<int, float>();
-    private float requiredTimeAllOpen = 5f; // 5 secondes requises
+    [Header("Audio Components")]
+    [SerializeField] private AudioSource musicWaitingRoom;
 
-    private float requiredTimeToRequestSnapshot = 2.5f; // 5 secondes requises
-    private bool isCountingDown = false;
+    [Header("Next Scene")]
+    [SerializeField] private GameObject jetpackGame;
 
-    [SerializeField] private GameObject planetSpawner;
-    [SerializeField] private GameObject meteoriteSpawner;
-
-    // [SerializeField] private GameObject scrollingBackground;
-
-
-    [SerializeField] private GameObject waitingRoom;
-
-
+    [Header("Visual Components")]
+    [SerializeField] private GameObject waitingRoomTexts;
     [SerializeField] private TextMeshProUGUI countdownText;
-
     [SerializeField] private TextMeshProUGUI playerCountText;
 
+    [Header("Player Components")]
 
-    // [SerializeField] private GameObject planetSpawner;
+    [SerializeField] public List<AnimationClip> playersAnimations = new List<AnimationClip>();
+
+    [Header("Parameters")]
+    public bool startGame = false;
+
+    // public List<Transform> playerTargetPositions;
 
 
+    private Dictionary<int, float> mouthOpenTimers = new Dictionary<int, float>();
+    // 5 secondes requises pour démarrer le jeu en ouvrant la bouche
+    private float requiredTimeToStartGame = 5f; 
+
+    // Demande d'une photo avatar au bout de 2.5 secondes
+    private float requiredTimeToRequestSnapshot = 2.5f; 
+    private bool isCountingDown = false;
     private int playerCount = 0;
 
     private PlayerManager playerManager;
@@ -40,15 +44,24 @@ public class StartGame : MonoBehaviour
         playerManager = FindObjectOfType<PlayerManager>();
 
         if (startGame){
-            waitingRoom.SetActive(false);
-            planetSpawner.SetActive(true);
-            meteoriteSpawner.SetActive(true);
+            waitingRoomTexts.SetActive(false);
+            // planetSpawner.SetActive(true);
+            // meteoriteSpawner.SetActive(true);
+            jetpackGame.SetActive(true);
         }
         else{
-            waitingRoom.SetActive(true);
-            planetSpawner.SetActive(false);
-            meteoriteSpawner.SetActive(false);
+            waitingRoomTexts.SetActive(true);
+
+            musicWaitingRoom.Play();
+            // planetSpawner.SetActive(false);
+            // meteoriteSpawner.SetActive(false);
+            jetpackGame.SetActive(false);
         }
+
+        // Debug
+        // for (int i = 0; i < 4; i++){
+        //     playerManager.PlayPlayerAnimation(i, playersAnimations[i]);
+        // }
     }
 
 
@@ -63,12 +76,22 @@ public class StartGame : MonoBehaviour
             if (!mouthOpenTimers.ContainsKey(id))
             {
                 mouthOpenTimers[id] = 0f;
+
+                if (startGame == false){
+                    playerManager.PlayPlayerAnimation(id, playersAnimations[id]);
+                }
+
+                // Debug.Log("Playing animation, player count " + playerCount);
             }
         }
         else
         {
             mouthOpenTimers.Remove(id);
             isCountingDown = false;
+
+            if (startGame == false){
+                playerManager.StopPlayerAnimation(id);
+            }
         }
     }
 
@@ -103,7 +126,7 @@ public class StartGame : MonoBehaviour
             }
 
             // Vérifier si tous les timers ont atteint le temps requis
-            bool allTimersComplete = mouthOpenTimers.Values.All(timer => timer >= requiredTimeAllOpen);
+            bool allTimersComplete = mouthOpenTimers.Values.All(timer => timer >= requiredTimeToStartGame);
 
 
 
@@ -114,15 +137,19 @@ public class StartGame : MonoBehaviour
 
                 playerManager.ShowPlayersAvatar();
 
-                waitingRoom.SetActive(false);
-                planetSpawner.SetActive(true);
-                meteoriteSpawner.SetActive(true);
+
+                waitingRoomTexts.SetActive(false);
+                // planetSpawner.SetActive(true);
+                // meteoriteSpawner.SetActive(true);
+                jetpackGame.SetActive(true);
+
+                playerManager.PlayersStartJetpackGame();
             }
             else
             {
                 // Afficher le temps restant (prendre le timer le plus bas)
                 float lowestTimer = mouthOpenTimers.Values.Min();
-                float remainingTime = requiredTimeAllOpen - lowestTimer;
+                float remainingTime = requiredTimeToStartGame - lowestTimer;
                 // Debug.Log($"Temps restant : {remainingTime:F1} secondes");
 
                 countdownText.text = $"Keep all mouths open {remainingTime:F1} seconds to start";

@@ -9,7 +9,7 @@ public class PlayerManager : MonoBehaviour
 {
 
 
-    [SerializeField] private GameObject playerPrefab;
+    [SerializeField] private List<GameObject> playerPrefabs = new List<GameObject>();
 
     // Dictionnaire pour suivre les joueurs actifs
     private Dictionary<int, GameObject> activePlayers = new Dictionary<int, GameObject>();
@@ -38,6 +38,12 @@ public class PlayerManager : MonoBehaviour
         }
 
         startGame = FindObjectOfType<StartGame>();
+
+        // Debug
+        for (int i = 0; i < 4; i++){
+            EnsurePlayerExists(i);
+            PlayPlayerAnimation(i, startGame.playersAnimations[i]);
+        }
     }  
     
 
@@ -60,8 +66,8 @@ public class PlayerManager : MonoBehaviour
         if (!activePlayers.ContainsKey(faceId))
         {
             // Créer un nouveau joueur à une position décalée
-            Vector3 spawnPosition = new Vector3(-faceId * 2, 0, 0); // Décalage horizontal
-            GameObject newPlayer = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            // Vector3 spawnPosition = new Vector3(-faceId * 2, 0, 0); // Décalage horizontal
+            GameObject newPlayer = Instantiate(playerPrefabs[faceId], playerPrefabs[faceId].transform.position, Quaternion.identity);
             
             // Configurer le mouvement pour ce joueur
             Player playerLogic = newPlayer.GetComponent<Player>();
@@ -123,5 +129,36 @@ public class PlayerManager : MonoBehaviour
         // }
 
         playerHeaderReference.gameObject.SetActive(true);
+    }
+
+
+    public void PlayPlayerAnimation(int id, AnimationClip animationClip){
+        Debug.Log("Playing animation " + animationClip.name + " for player " + id);
+
+        // activePlayers[id].GetComponent<Animator>().runtimeAnimatorController = animationClip;
+
+        activePlayers[id].GetComponent<Animator>().Play(animationClip.name);
+    }
+
+    public void StopPlayerAnimation(int id){
+        // activePlayers[id].GetComponent<Animator>().StopPlayback();
+
+        activePlayers[id].GetComponent<Animator>().Play("Idle");
+
+    }
+
+    
+
+    public void PlayersStartJetpackGame(){
+        foreach (var player in activePlayers)
+        {
+
+            // player.Value.GetComponent<Animator>().StopPlayback();
+            // player.Value.GetComponent<Animator>().Play("Idle");
+
+            // player.Value.GetComponent<Animator>().enabled = false;
+
+            player.Value.GetComponent<Player>().StartJetpackGame();
+        }
     }
 }
