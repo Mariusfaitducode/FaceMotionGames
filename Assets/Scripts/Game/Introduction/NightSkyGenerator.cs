@@ -32,7 +32,7 @@ public class NightSkyGenerator : MonoBehaviour
     [SerializeField] private float nebulaMaskThreshold = 0.6f; // Seuil pour le masque
 
     [Header("Transition Settings")]
-    [SerializeField] private float transitionDuration = 60f; // 3 minutes
+    [SerializeField] private float transitionDuration = 90f; // 1 minute 30
     [SerializeField] private Color endBackgroundColor = new Color(0.01f, 0.01f, 0.02f, 1f);
     [SerializeField] private float starFadeOutDuration = 3f; // Durée de fade pour chaque étoile
 
@@ -56,10 +56,24 @@ public class NightSkyGenerator : MonoBehaviour
 
     private List<StarInfo> activeStars = new List<StarInfo>();
 
+    private Vector3 initialPosition;
+    private Coroutine translationCoroutine;
+
     void Start()
+    {
+        
+
+        // GenerateSky();
+        
+
+        // StartCoroutine(TransitionEffect());
+    }
+
+    public void GenerateSky()
     {
         mainCamera = Camera.main;
         CalculateScreenDimensions();
+
         InitializeSky();
         GenerateStars();
         initialBackgroundColor = backgroundColor;
@@ -78,8 +92,6 @@ public class NightSkyGenerator : MonoBehaviour
                 });
             }
         }
-
-        StartCoroutine(TransitionEffect());
     }
 
     void CalculateScreenDimensions()
@@ -363,8 +375,10 @@ public class NightSkyGenerator : MonoBehaviour
     IEnumerator TransitionEffect()
     {
         Color[] currentPixels = skyTexture.GetPixels();
+
+        isTransitioning = true;
         
-        while (transitionTimer < transitionDuration)
+        while (transitionTimer < transitionDuration && isTransitioning)
         {
 
             transitionTimer += Time.deltaTime;
@@ -426,20 +440,69 @@ public class NightSkyGenerator : MonoBehaviour
         }
 
         // État final
-        Color[] finalPixels = new Color[currentPixels.Length];
-        for (int i = 0; i < finalPixels.Length; i++)
-        {
-            finalPixels[i] = endBackgroundColor;
-        }
-        skyTexture.SetPixels(finalPixels);
-        skyTexture.Apply();
+        // Color[] finalPixels = new Color[currentPixels.Length];
+        // for (int i = 0; i < finalPixels.Length; i++)
+        // {
+        //     finalPixels[i] = endBackgroundColor;
+        // }
+        // skyTexture.SetPixels(finalPixels);
+        // skyTexture.Apply();
 
         isTransitioning = false;
+    }
+
+
+    public void StopTransition()
+    {
+        isTransitioning = false;
+        transitionTimer = 0f;
     }
 
     // Méthode pour vérifier si la transition est terminée
     public bool IsTransitionComplete()
     {
         return !isTransitioning && transitionTimer >= transitionDuration;
+    }
+
+    public void InitializePositions()
+    {
+        initialPosition = transform.position;
+    }
+
+    public void TranslateSky(Vector3 targetOffset, float duration, AnimationCurve translationCurve = null)
+    {
+        if (translationCoroutine != null)
+        {
+            StopCoroutine(translationCoroutine);
+        }
+        translationCoroutine = StartCoroutine(TranslateCoroutine(targetOffset, duration, translationCurve));
+    }
+
+    private IEnumerator TranslateCoroutine(Vector3 targetOffset, float duration, AnimationCurve translationCurve)
+    {
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = initialPosition + targetOffset;
+        float elapsed = 0;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / duration;
+            
+            if (translationCurve != null)
+            {
+                progress = translationCurve.Evaluate(progress);
+            }
+
+            transform.position = Vector3.Lerp(startPosition, targetPosition, progress);
+            yield return null;
+        }
+
+        transform.position = targetPosition;
+    }
+
+    public void ResetPosition(float duration = 0)
+    {
+        TranslateSky(Vector3.zero, duration);
     }
 }
