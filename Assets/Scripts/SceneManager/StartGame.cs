@@ -18,7 +18,7 @@ public class StartGame : MonoBehaviour
     [SerializeField] private GameObject jetpackGame;
 
     [Header("Visual Components")]
-    [SerializeField] private GameObject waitingRoomTexts;
+    // [SerializeField] private GameObject waitingRoomTexts;
     [SerializeField] private TextMeshProUGUI countdownText;
     [SerializeField] private TextMeshProUGUI playerCountText;
 
@@ -48,7 +48,7 @@ public class StartGame : MonoBehaviour
         playerManager.SetStartGame(this);
 
         if (startGame){
-            waitingRoomTexts.SetActive(false);
+            // waitingRoomTexts.SetActive(false);
             jetpackGame.SetActive(true);
         }
         else{
@@ -56,7 +56,7 @@ public class StartGame : MonoBehaviour
             StartCoroutine(MusicUtils.FadeMusicVolume(musicWaitingRoom, 0f, 0.5f, 1f));
 
 
-            waitingRoomTexts.SetActive(true);
+            // waitingRoomTexts.SetActive(true);
             jetpackGame.SetActive(false);
         }
 
@@ -94,7 +94,7 @@ public class StartGame : MonoBehaviour
             isCountingDown = false;
 
             if (startGame == false){
-                playerManager.StopPlayerAnimation(id);
+                playerManager.ResetPlayerAnimation(id);
             }
         }
     }
@@ -138,9 +138,10 @@ public class StartGame : MonoBehaviour
                 Debug.Log("Le jeu commence !");
 
                 playerManager.ShowPlayersAvatar();
+                // playerManager.StopAllPlayerAnimation();
                 // waitingRoomTexts.SetActive(false);
 
-                StartCoroutine(StartGameTransition());
+                StartCoroutine(JetpackGameTransition());
             }
             else
             {
@@ -164,7 +165,7 @@ public class StartGame : MonoBehaviour
     }
 
 
-    private IEnumerator StartGameTransition()
+    private IEnumerator JetpackGameTransition()
     {
         // Fade out de la musique
         StartCoroutine(MusicUtils.FadeMusicVolume(musicWaitingRoom, 0.5f, 0f, 2f));

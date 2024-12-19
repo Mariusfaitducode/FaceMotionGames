@@ -5,8 +5,8 @@ using UnityEditor;
 public class PlanetSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject planetPrefab;
-    [SerializeField] private float spawnRate = 2f;
-    [SerializeField] private float planetSpeed = 5f;
+    public float spawnDelay = 3f;
+    public float planetSpeed = 4f;
     [SerializeField] private float destroyXPosition = -10f;
     
     // Paramètres pour le contrôle des hauteurs de spawn
@@ -25,7 +25,7 @@ public class PlanetSpawner : MonoBehaviour
     private void Start()
     {
         mainCamera = Camera.main;
-        nextSpawnTime = Time.time + spawnRate;
+        nextSpawnTime = Time.time + spawnDelay;
         InitializeLanes();
     }
 
@@ -43,7 +43,7 @@ public class PlanetSpawner : MonoBehaviour
         if (Time.time >= nextSpawnTime)
         {
             SpawnPlanet();
-            nextSpawnTime = Time.time + spawnRate;
+            nextSpawnTime = Time.time + spawnDelay;
         }
     }
 

@@ -15,19 +15,16 @@ public class PlayerManager : MonoBehaviour
     private Dictionary<int, GameObject> activePlayers = new Dictionary<int, GameObject>();
     private Dictionary<int, bool> requestedPlayerSnapshots = new Dictionary<int, bool>();
 
-    [SerializeField] private GameObject playerScoreTextPrefab; // Prefab pour le texte du score
-
-    [SerializeField] private GameObject playerAvatarPrefab; // Prefab pour le texte du score
-
-    [SerializeField] private Transform playerHeaderReference;
+    
 
 
     private StartGame startGame;
     private GameController gameController;
+
+    private CanvasManager canvasManager;
     // Start is called before the first frame update
     void Start()
     {
-        playerHeaderReference.gameObject.SetActive(false);
 
         gameController = FindObjectOfType<GameController>();
         if (gameController != null)
@@ -38,6 +35,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         startGame = FindObjectOfType<StartGame>();
+        canvasManager = FindObjectOfType<CanvasManager>();
 
         // Debug.Log("StartGame enabled: " + startGame.enabled);
 
@@ -79,33 +77,24 @@ public class PlayerManager : MonoBehaviour
             // Vector3 spawnPosition = new Vector3(-faceId * 2, 0, 0); // Décalage horizontal
             GameObject newPlayer = Instantiate(playerPrefabs[faceId], playerPrefabs[faceId].transform.position, Quaternion.identity);
             
-            // Configurer le mouvement pour ce joueur
+            
             Player playerLogic = newPlayer.GetComponent<Player>();
             playerLogic.SetFaceId(faceId);
 
-            // Donner une couleur aléatoire à chaque joueur
-            // newPlayer.GetComponent<SpriteRenderer>().color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-            
-            // Créer l'avatar du joueur
-            GameObject avatarObj = Instantiate(playerAvatarPrefab, playerHeaderReference);
-            RectTransform avatarRectTransform = avatarObj.GetComponent<RectTransform>();
-            float avatarWidth = avatarRectTransform.rect.width;
-            avatarRectTransform.anchoredPosition = new Vector2(avatarWidth * faceId, 0);
 
-            RawImage avatar = avatarObj.GetComponentInChildren<RawImage>();
-            
+            // Calculate avatar position based on screen width
+            // float screenWidth = Screen.width;
+            // float positionX = (screenWidth / 4) * faceId + (screenWidth / 8); // Center in each quarter
+            // Vector2 viewportPoint = new Vector2(positionX / screenWidth, 1);
+            // Vector2 screenPoint = Camera.main.ViewportToScreenPoint(new Vector3(viewportPoint.x, viewportPoint.y, 0));
+            // Vector2 localPoint;
+            // RectTransformUtility.ScreenPointToLocalPointInRectangle(playerHeaderReference, screenPoint, null, out localPoint);
 
-            // Créer le texte du score
-            GameObject scoreTextObj = Instantiate(playerScoreTextPrefab, playerHeaderReference);
-            RectTransform rectTransform = scoreTextObj.GetComponent<RectTransform>();
-            float width = rectTransform.rect.width;
-            
-            rectTransform.anchoredPosition = new Vector2(width * faceId + avatarWidth, 0);
-            TextMeshProUGUI scoreText = scoreTextObj.GetComponent<TextMeshProUGUI>();
-            scoreText.text = $"0";
+
+            canvasManager.InitPlayerOnHeader(faceId, playerLogic);
 
             // Associer le texte du score au joueur
-            playerLogic.SetPlayerHeader(avatar, scoreText);
+            // playerLogic.SetPlayerHeader(avatar, scoreText);
 
             // Ajouter le joueur à la liste des joueurs actifs  
             activePlayers.Add(faceId, newPlayer);
@@ -133,12 +122,8 @@ public class PlayerManager : MonoBehaviour
     }
 
     public void ShowPlayersAvatar(){
-        // foreach (var player in activePlayers)
-        // {
-        //     player.GetComponent<Player>().ShowAvatar();
-        // }
 
-        playerHeaderReference.gameObject.SetActive(true);
+        canvasManager.ShowPlayerHeader();
     }
 
 
@@ -150,12 +135,21 @@ public class PlayerManager : MonoBehaviour
         activePlayers[id].GetComponent<Animator>().Play(animationClip.name);
     }
 
-    public void StopPlayerAnimation(int id){
-        // activePlayers[id].GetComponent<Animator>().StopPlayback();
+    public void ResetPlayerAnimation(int id){
 
         activePlayers[id].GetComponent<Animator>().Play("Idle");
 
     }
+
+    public void StopAllPlayerAnimator(){
+        foreach (var player in activePlayers)
+        {
+            player.Value.GetComponent<Animator>().enabled = false;
+        }
+    }
+
+
+
 
     
 
@@ -170,5 +164,43 @@ public class PlayerManager : MonoBehaviour
 
             player.Value.GetComponent<Player>().StartJetpackGame();
         }
+    }
+
+    public IEnumerator PlayersSimpleTransition(Vector3 translation, AnimationCurve curve, float duration){
+        float elapsed = 0;
+
+        // StopAllPlayerAnimator();
+
+        List<Vector3> playerInitialPositions = new List<Vector3>();
+
+        foreach (var player in activePlayers)
+        {
+            playerInitialPositions.Add(player.Value.transform.position);
+            player.Value.GetComponent<Player>().SetPlayerForTransition();
+        }
+        
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / duration;
+            
+
+            foreach (var player in activePlayers)
+            {
+                player.Value.transform.position = Vector3.Lerp(
+                    playerInitialPositions[player.Key],
+                    playerInitialPositions[player.Key] + translation,
+                    curve.Evaluate(progress)
+                );
+            }
+
+            yield return null;
+        }
+
+        // foreach (var player in activePlayers)
+        // {
+        //     player.Value.GetComponent<Player>().ResetPlayerAfterTransition();
+        // }
     }
 }

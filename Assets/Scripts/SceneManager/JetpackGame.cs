@@ -19,6 +19,23 @@ public class JetpackGame : MonoBehaviour
 
 
 
+    [Header("Game Components")]
+    [SerializeField] private GameObject gameCanvas;
+
+    private PlanetSpawner planetSpawner;
+    private MeteoriteSpawner meteorSpawner;
+
+    private int difficultyLevel = 1;
+
+
+    [Header("Transition Settings")]
+
+    [SerializeField] private AnimationCurve initialTransitionCurve = new AnimationCurve(
+        new Keyframe(0, 0, 0, 0),
+        new Keyframe(1, 1, 2, 0)
+    );
+
+
     private PlayerManager playerManager;
 
     private Vector3 commandCenterFinalOffset = new Vector3(-6, 0, 0);
@@ -26,10 +43,17 @@ public class JetpackGame : MonoBehaviour
     void Start()
     {
 
-        
+        playerManager = FindObjectOfType<PlayerManager>();
+
+        planetSpawner = FindObjectOfType<PlanetSpawner>();
+        meteorSpawner = FindObjectOfType<MeteoriteSpawner>();
+
+        planetSpawner.gameObject.SetActive(false);
+        meteorSpawner.gameObject.SetActive(false);
+
         StartCoroutine(InitialTransition());
 
-        
+        StartCoroutine(IncreaseDifficultyCoroutine());
     }
 
 
@@ -38,13 +62,38 @@ public class JetpackGame : MonoBehaviour
 
         StartCoroutine(CommandCenterTransition(4f));
 
-        musicJetpackGame.Play();
-        StartCoroutine(MusicUtils.FadeMusicVolume(musicJetpackGame, 0f, 1f, 2f));
+        nightSky.StartSkyTranslation(new Vector3(-1, 0, 0), 0.1f);
+
+        StartCoroutine(playerManager.PlayersSimpleTransition(commandCenterFinalOffset, initialTransitionCurve, 4f));
 
         yield return new WaitForSeconds(4f);
 
-        playerManager = FindObjectOfType<PlayerManager>();
+        musicJetpackGame.Play();
+        StartCoroutine(MusicUtils.FadeMusicVolume(musicJetpackGame, 0f, 1f, 2f));
+
+        yield return new WaitForSeconds(1f);
+        
         playerManager.PlayersStartJetpackGame();
+
+        planetSpawner.gameObject.SetActive(true);
+        meteorSpawner.gameObject.SetActive(true);
+    }
+
+    IEnumerator IncreaseDifficultyCoroutine(){
+
+        
+
+        InitializeDifficulty();
+        yield return new WaitForSeconds(44f);
+        IncreaseDifficulty();
+
+        yield return new WaitForSeconds(40f);
+        IncreaseDifficulty();
+
+        yield return new WaitForSeconds(40f);
+        IncreaseDifficulty();
+
+        
     }
 
 
@@ -59,34 +108,55 @@ public class JetpackGame : MonoBehaviour
         // Vector3 startScale = commandCenterRenderer.transform.localScale;
         Vector3 startPosition = commandCenterRenderer.transform.position;
 
-        // Démarrer la translation du ciel
-        // if (nightSky != null)
-        // {
-        //     nightSky.TranslateSky(skyFinalOffset, duration, finalTransitionCurve);
-        // }
-
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float progress = elapsed / duration;
-            // float curvedProgress = finalTransitionCurve.Evaluate(progress);
-
-            // Déplacer et redimensionner le centre de commande
-            // commandCenterRenderer.transform.localScale = Vector3.Lerp(
-            //     startScale,
-            //     commandCenterBaseScale * commandCenterFinalScale,
-            //     curvedProgress
-            // );
 
             commandCenterRenderer.transform.position = Vector3.Lerp(
                 startPosition,
                 startPosition + commandCenterFinalOffset,
-                progress
+                initialTransitionCurve.Evaluate(progress)
             );
 
             yield return null;
         }
 
-        Debug.Log("Final transition completed");
+        Debug.Log("Initial transition completed");
+    }
+
+    private void InitializeDifficulty(){
+        difficultyLevel = 1;
+        planetSpawner.spawnDelay = 3f;
+        planetSpawner.planetSpeed = 4f;
+    }
+
+    public void IncreaseDifficulty(){
+        difficultyLevel++;
+
+        Debug.Log("Difficulty increased to " + difficultyLevel);
+        
+        switch(difficultyLevel){
+            case 1:
+                planetSpawner.spawnDelay = 2.5f;
+                planetSpawner.planetSpeed = 5f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+            case 2:
+                planetSpawner.spawnDelay = 1.8f;
+                planetSpawner.planetSpeed = 6f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+            case 3:
+                planetSpawner.spawnDelay = 1.3f;
+                planetSpawner.planetSpeed = 6.5f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+            case 4:
+                planetSpawner.spawnDelay = 0.8f;
+                planetSpawner.planetSpeed = 7f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+        }
     }
 }

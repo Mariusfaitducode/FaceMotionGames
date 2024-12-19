@@ -76,14 +76,22 @@ public class NightSkyGenerator : MonoBehaviour
 
     private StarTransitionSettings transitionSettings;
 
+
+    private bool isInTranslation = false;
+    private float translationSpeed = 1f;
+    private Vector3 translationDirection = new Vector3(1, 0, 0);
+
     void Start()
     {
-        
-
         // GenerateSky();
-        
-
         // StartCoroutine(TransitionEffect());
+    }
+
+    void Update(){
+        if (isInTranslation)
+        {
+            transform.position += translationDirection * translationSpeed * Time.deltaTime;
+        }
     }
 
     public void GenerateSky()
@@ -580,6 +588,9 @@ public class NightSkyGenerator : MonoBehaviour
         translationCoroutine = StartCoroutine(TranslateCoroutine(targetOffset, duration, translationCurve));
     }
 
+
+    
+
     private IEnumerator TranslateCoroutine(Vector3 targetOffset, float duration, AnimationCurve translationCurve)
     {
         Vector3 startPosition = transform.position;
@@ -606,5 +617,16 @@ public class NightSkyGenerator : MonoBehaviour
     public void ResetPosition(float duration = 0)
     {
         TranslateSky(Vector3.zero, duration);
+    }
+
+
+    public void StartSkyTranslation(Vector3 direction, float speed){
+        translationDirection = direction;
+        translationSpeed = speed;
+        isInTranslation = true;
+    }
+
+    public void StopSkyTranslation(){
+        isInTranslation = false;
     }
 }
