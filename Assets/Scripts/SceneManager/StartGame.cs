@@ -11,6 +11,9 @@ public class StartGame : MonoBehaviour
     [Header("Audio Components")]
     [SerializeField] private AudioSource musicWaitingRoom;
 
+    [Header("Previous Scene")]
+    [SerializeField] private GameObject introductionScene;
+
     [Header("Next Scene")]
     [SerializeField] private GameObject jetpackGame;
 
@@ -42,19 +45,18 @@ public class StartGame : MonoBehaviour
 
     public void Start(){
         playerManager = FindObjectOfType<PlayerManager>();
+        playerManager.SetStartGame(this);
 
         if (startGame){
             waitingRoomTexts.SetActive(false);
-            // planetSpawner.SetActive(true);
-            // meteoriteSpawner.SetActive(true);
             jetpackGame.SetActive(true);
         }
         else{
-            waitingRoomTexts.SetActive(true);
-
             musicWaitingRoom.Play();
-            // planetSpawner.SetActive(false);
-            // meteoriteSpawner.SetActive(false);
+            StartCoroutine(MusicUtils.FadeMusicVolume(musicWaitingRoom, 0f, 0.5f, 1f));
+
+
+            waitingRoomTexts.SetActive(true);
             jetpackGame.SetActive(false);
         }
 
@@ -62,6 +64,8 @@ public class StartGame : MonoBehaviour
         // for (int i = 0; i < 4; i++){
         //     playerManager.PlayPlayerAnimation(i, playersAnimations[i]);
         // }
+
+        this.introductionScene.SetActive(false);
     }
 
 
@@ -128,22 +132,15 @@ public class StartGame : MonoBehaviour
             // Vérifier si tous les timers ont atteint le temps requis
             bool allTimersComplete = mouthOpenTimers.Values.All(timer => timer >= requiredTimeToStartGame);
 
-
-
             if (allTimersComplete)
             {
                 startGame = true;
                 Debug.Log("Le jeu commence !");
 
                 playerManager.ShowPlayersAvatar();
+                // waitingRoomTexts.SetActive(false);
 
-
-                waitingRoomTexts.SetActive(false);
-                // planetSpawner.SetActive(true);
-                // meteoriteSpawner.SetActive(true);
-                jetpackGame.SetActive(true);
-
-                playerManager.PlayersStartJetpackGame();
+                StartCoroutine(StartGameTransition());
             }
             else
             {
@@ -164,6 +161,24 @@ public class StartGame : MonoBehaviour
 
             
         }
+    }
+
+
+    private IEnumerator StartGameTransition()
+    {
+        // Fade out de la musique
+        StartCoroutine(MusicUtils.FadeMusicVolume(musicWaitingRoom, 0.5f, 0f, 2f));
+
+        // Fade out des textes
+        StartCoroutine(TextUtils.FadeTextToTransparent(countdownText, 2f));
+        StartCoroutine(TextUtils.FadeTextToTransparent(playerCountText, 2f));
+
+        // Attendre que les fades soient terminés
+        yield return new WaitForSeconds(2f);
+
+        // Activer le jeu
+        jetpackGame.SetActive(true);
+        
     }
 }
 

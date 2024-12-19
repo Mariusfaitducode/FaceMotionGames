@@ -39,23 +39,33 @@ public class PlayerManager : MonoBehaviour
 
         startGame = FindObjectOfType<StartGame>();
 
+        // Debug.Log("StartGame enabled: " + startGame.enabled);
+
         // Debug
-        for (int i = 0; i < 4; i++){
-            EnsurePlayerExists(i);
-            PlayPlayerAnimation(i, startGame.playersAnimations[i]);
-        }
+        // for (int i = 0; i < 4; i++){
+        //     EnsurePlayerExists(i);
+        //     PlayPlayerAnimation(i, startGame.playersAnimations[i]);
+        // }
     }  
+
+
+    public void SetStartGame(StartGame startGame){
+        this.startGame = startGame;
+    }
     
 
     private void HandleMouthState(int id, bool isOpen)
     {
+
+        
         if (activePlayers.ContainsKey(id))
         {
             activePlayers[id].GetComponent<Player>().SetMouthState(isOpen);
             
+
             startGame.SetMouthsOpen(id, isOpen, activePlayers.Count);
         }
-        else
+        else if (startGame != null)
         {
             EnsurePlayerExists(id);
         }

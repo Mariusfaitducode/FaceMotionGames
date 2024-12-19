@@ -122,7 +122,6 @@ public class Player : MonoBehaviour
         }
         else if (isMouthOpen)
         {
-            Debug.Log("Player " + faceId + " is moving");
             rb.velocity = new Vector2(rb.velocity.x, jetpackSpeed);
         }
     }

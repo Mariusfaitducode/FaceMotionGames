@@ -163,7 +163,7 @@ public class IntroductionManager : MonoBehaviour
         // Démarrer la musique
         musicIntro.volume = 0f;
         musicIntro.Play();
-        yield return StartCoroutine(FadeMusicVolume(0f, originalMusicVolume, 2f));
+        yield return MusicUtils.FadeMusicVolume(musicIntro, 0f, originalMusicVolume, 2f);
 
         Debug.Log("Music intro started");
 
@@ -174,7 +174,11 @@ public class IntroductionManager : MonoBehaviour
         
         
         // Nova parle
-        yield return StartCoroutine(FadeMusicVolume(originalMusicVolume, originalMusicVolume * 0.5f, 1f));
+        // StartCoroutine lance le fade en parallèle sans attendre
+        // La séquence d'intro continue immédiatement
+        // Le fade de volume se fait en arrière-plan
+        yield return StartCoroutine(MusicUtils.FadeMusicVolume(musicIntro, originalMusicVolume, originalMusicVolume * 0.5f, 1f));
+
         voiceNova.Play();
         Debug.Log("Nova started speaking");
         
@@ -186,7 +190,7 @@ public class IntroductionManager : MonoBehaviour
 
         yield return new WaitForSeconds(10f);
 
-        StartCoroutine(FadeMusicVolume(musicIntro.volume, originalMusicVolume, 2f));
+        StartCoroutine(MusicUtils.FadeMusicVolume(musicIntro, originalMusicVolume, originalMusicVolume, 2f));
         Debug.Log("Nova finished speaking");
 
         yield return new WaitForSeconds(5f);
@@ -214,7 +218,7 @@ public class IntroductionManager : MonoBehaviour
         // yield return new WaitForSeconds(stellaStartDelay);
         
         // Baisser le volume pour Stella
-        yield return StartCoroutine(FadeMusicVolume(originalMusicVolume, originalMusicVolume * 0.5f, 1f));
+        StartCoroutine(MusicUtils.FadeMusicVolume(musicIntro, originalMusicVolume, originalMusicVolume * 0.5f, 1f));
         voiceStella.Play();
 
         Debug.Log("Stella started speaking");
@@ -224,38 +228,44 @@ public class IntroductionManager : MonoBehaviour
 
         Debug.Log("Stella finished speaking");
         
-        // Remettre le volume normal
-        yield return StartCoroutine(FadeMusicVolume(musicIntro.volume, originalMusicVolume, 1f));
-
         // Transition finale
-        yield return StartCoroutine(FinalTransition(finalTransitionDuration));
+        StartCoroutine(FinalTransition(finalTransitionDuration));
+
+
+        yield return new WaitForSeconds(4f);
+
+        // Remettre le volume normal
+        yield return StartCoroutine(MusicUtils.FadeMusicVolume(musicIntro, originalMusicVolume, originalMusicVolume, 1f));
 
 
         // Vérifier si la musique a dépassé 3 minutes
-        if (musicIntro != null && musicIntro.time >= 180f)
+
+        while (musicIntro.time < 180f)
         {
-            musicIntro.Stop();
-            Debug.Log("Music stopped after 3 minutes");
+            yield return null;
         }
+
+        musicIntro.Stop();
+        Debug.Log("Music stopped after 3 minutes");
 
         LoadWaitingRoom();
     }
 
-    IEnumerator FadeMusicVolume(float startVolume, float targetVolume, float duration)
-    {
-        float elapsed = 0;
+    // IEnumerator FadeMusicVolume(float startVolume, float targetVolume, float duration)
+    // {
+    //     float elapsed = 0;
         
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float normalizedTime = elapsed / duration;
+    //     while (elapsed < duration)
+    //     {
+    //         elapsed += Time.deltaTime;
+    //         float normalizedTime = elapsed / duration;
             
-            musicIntro.volume = Mathf.Lerp(startVolume, targetVolume, normalizedTime);
-            yield return null;
-        }
+    //         musicIntro.volume = Mathf.Lerp(startVolume, targetVolume, normalizedTime);
+    //         yield return null;
+    //     }
         
-        musicIntro.volume = targetVolume;
-    }
+    //     musicIntro.volume = targetVolume;
+    // }
 
     IEnumerator ZoomTransition(float duration)
     {
@@ -410,7 +420,7 @@ public class IntroductionManager : MonoBehaviour
 
         if (musicIntro != null)
         {
-            yield return StartCoroutine(FadeMusicVolume(musicIntro.volume, 0f, 3f));
+            yield return StartCoroutine(MusicUtils.FadeMusicVolume(musicIntro, originalMusicVolume, 0f, 3f));
             Debug.Log("Music stopped after 3 minutes");
         }
 
