@@ -17,6 +17,8 @@ public class JetpackGame : MonoBehaviour
     [SerializeField] private NightSkyGenerator nightSky;
     [SerializeField] private SpriteRenderer commandCenterRenderer;
 
+    private ScrollingBackground scrollingBackground;
+
 
 
     [Header("Game Components")]
@@ -48,6 +50,8 @@ public class JetpackGame : MonoBehaviour
         planetSpawner = FindObjectOfType<PlanetSpawner>();
         meteorSpawner = FindObjectOfType<MeteoriteSpawner>();
 
+        scrollingBackground = FindObjectOfType<ScrollingBackground>();
+
         planetSpawner.gameObject.SetActive(false);
         meteorSpawner.gameObject.SetActive(false);
 
@@ -59,12 +63,13 @@ public class JetpackGame : MonoBehaviour
 
     IEnumerator InitialTransition(){
 
-
+        // Initial transition
         StartCoroutine(CommandCenterTransition(4f));
 
-        nightSky.StartSkyTranslation(new Vector3(-1, 0, 0), 0.1f);
+        // nightSky.StartSkyTranslation(new Vector3(-1, 0, 0), 10f);
+        scrollingBackground.StartScrolling(1f, new Vector3(-1, 0, 0), nightSky.gameObject);
 
-        StartCoroutine(playerManager.PlayersSimpleTransition(commandCenterFinalOffset, initialTransitionCurve, 4f));
+        StartCoroutine(playerManager.PlayersSimpleTransition(commandCenterFinalOffset * 0.6f, initialTransitionCurve, 4f));
 
         yield return new WaitForSeconds(4f);
 
@@ -72,7 +77,9 @@ public class JetpackGame : MonoBehaviour
         StartCoroutine(MusicUtils.FadeMusicVolume(musicJetpackGame, 0f, 1f, 2f));
 
         yield return new WaitForSeconds(1f);
-        
+
+
+        // Start the jetpack game
         playerManager.PlayersStartJetpackGame();
 
         planetSpawner.gameObject.SetActive(true);
@@ -81,24 +88,21 @@ public class JetpackGame : MonoBehaviour
 
     IEnumerator IncreaseDifficultyCoroutine(){
 
-        
-
         InitializeDifficulty();
         yield return new WaitForSeconds(44f);
+        scrollingBackground.UpdateScrollingSpeed(3f);
         IncreaseDifficulty();
 
         yield return new WaitForSeconds(40f);
+        scrollingBackground.UpdateScrollingSpeed(6f);
         IncreaseDifficulty();
 
         yield return new WaitForSeconds(40f);
+        scrollingBackground.UpdateScrollingSpeed(10f);
         IncreaseDifficulty();
 
         
     }
-
-
-
-
 
 
     // Command Center Transition

@@ -69,18 +69,7 @@ public class Player : MonoBehaviour
 
     
 
-    public void StartJetpackGame(){
-
-        Debug.Log("Starting jetpack game for player " + faceId);
-
-        // GetComponent<Animator>().enabled = false;
-
-        this.gameObject.AddComponent<JetpackRules>();
-
-        jetpackRules = GetComponent<JetpackRules>();
-
-        jetpackRules.InitializeJetpackRules(this, rb);  
-    }
+    
 
 
     public void SetPlayerForTransition(){
@@ -94,5 +83,21 @@ public class Player : MonoBehaviour
         GetComponent<Animator>().enabled = true;
         rb.gravityScale = 1;
         GetComponent<Collider2D>().enabled = true;
+    }
+
+
+    public void StartJetpackGame(){
+
+        Debug.Log("Starting jetpack game for player " + faceId);
+
+        this.gameObject.AddComponent<JetpackRules>();
+        jetpackRules = GetComponent<JetpackRules>();
+
+        jetpackRules.InitializeJetpackRules(this, rb);  
+    }
+
+    public void StartPianoTilesGame(){
+
+        Debug.Log("Starting piano tiles game for player " + faceId);
     }
 }

@@ -81,6 +81,10 @@ public class NightSkyGenerator : MonoBehaviour
     private float translationSpeed = 1f;
     private Vector3 translationDirection = new Vector3(1, 0, 0);
 
+    [Header("Edge Fade Settings")]
+    [SerializeField] private float edgeOffset = 10f; // Taille de la bordure en pixels
+    [SerializeField] private float fadeWidth = 5f;   // Largeur du fondu en pixels
+
     void Start()
     {
         // GenerateSky();
@@ -91,6 +95,8 @@ public class NightSkyGenerator : MonoBehaviour
         if (isInTranslation)
         {
             transform.position += translationDirection * translationSpeed * Time.deltaTime;
+
+            
         }
     }
 
@@ -169,22 +175,22 @@ public class NightSkyGenerator : MonoBehaviour
         {
             for (int x = 0; x < width; x++)
             {
+                // Calculer le facteur de fondu pour les bords
+                float edgeFade = CalculateEdgeFade(x, y);
+                
                 float maskValue = maskNoise[x, y];
-                // Rendre la transition du masque plus nette mais pas trop brutale
                 float smoothMask = Mathf.SmoothStep(0, 1, (maskValue - nebulaMaskThreshold) * 2f);
                 
                 if (maskValue > nebulaMaskThreshold)
                 {
                     float noiseValue = (noise1[x, y] + noise2[x, y]) * 0.5f;
-                    // Augmenter légèrement le contraste tout en gardant une transition douce
                     noiseValue = Mathf.Pow(noiseValue, 1.7f);
 
-                    if (noiseValue > 0.4f) // Seuil légèrement plus élevé
+                    if (noiseValue > 0.4f)
                     {
                         Color nebulaColor;
                         float colorBlend = noiseValue;
                         
-                        // Transitions entre les couleurs avec des seuils plus marqués
                         if (colorBlend < 0.33f)
                         {
                             float t = (colorBlend * 3f);
@@ -204,10 +210,8 @@ public class NightSkyGenerator : MonoBehaviour
                             nebulaColor = Color.Lerp(nebulaColor3, nebulaColor1, t);
                         }
 
-                        // Intensité plus prononcée mais toujours avec une transition douce
-                        float finalIntensity = nebulaIntensity * smoothMask * Mathf.Pow(noiseValue, 1.2f);
+                        float finalIntensity = nebulaIntensity * smoothMask * Mathf.Pow(noiseValue, 1.2f) * edgeFade;
                         
-                        // Mélange des couleurs avec plus de contraste
                         Color currentColor = pixels[y * width + x];
                         pixels[y * width + x] = new Color(
                             currentColor.r + nebulaColor.r * finalIntensity,
@@ -221,6 +225,24 @@ public class NightSkyGenerator : MonoBehaviour
         }
 
         skyTexture.SetPixels(pixels);
+    }
+
+    private float CalculateEdgeFade(int x, int y)
+    {
+        // Calculer la distance depuis les bords
+        float distanceFromLeftEdge = x;
+        float distanceFromRightEdge = width - x;
+        float distanceFromTopEdge = height - y;
+        float distanceFromBottomEdge = y;
+
+        // Calculer le fade pour chaque bord
+        float leftFade = Mathf.SmoothStep(0, 1, (distanceFromLeftEdge - edgeOffset) / fadeWidth);
+        float rightFade = Mathf.SmoothStep(0, 1, (distanceFromRightEdge - edgeOffset) / fadeWidth);
+        float topFade = Mathf.SmoothStep(0, 1, (distanceFromTopEdge - edgeOffset) / fadeWidth);
+        float bottomFade = Mathf.SmoothStep(0, 1, (distanceFromBottomEdge - edgeOffset) / fadeWidth);
+
+        // Retourner le minimum des fades (le plus faible effet)
+        return Mathf.Min(leftFade, rightFade, topFade, bottomFade);
     }
 
     float[,] GeneratePerlinNoiseMap(float scale, float persistence)
@@ -273,7 +295,10 @@ public class NightSkyGenerator : MonoBehaviour
             int y = Random.Range(0, height);
             int pixelIndex = y * width + x;
             Color starColor = starColors[Random.Range(0, starColors.Length)];
-            starColor.a = Random.Range(0.5f, 1f);
+            skyTexture.SetPixel(x, y, starColor);
+
+            // float edgeFade = CalculateEdgeFade(x, y);
+            // starColor.a *= edgeFade;
             skyTexture.SetPixel(x, y, starColor);
 
             activeStars.Add(new StarInfo

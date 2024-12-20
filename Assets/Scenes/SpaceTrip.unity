@@ -464,6 +464,7 @@ Transform:
   - {fileID: 1821647351}
   - {fileID: 1617858310}
   - {fileID: 478821176}
+  - {fileID: 231953511}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &231953509
@@ -482,7 +483,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &231953510
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -495,7 +496,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9eba3de26cf7fcc4e9cad4a3e94a37e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrollSpeed: 1
+  isScrolling: 0
 --- !u!4 &231953511
 Transform:
   m_ObjectHideFlags: 0
@@ -504,15 +505,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 231953509}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.926239, y: -3.1031375, z: -3.7152648}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -8.762409, y: -3.4426036, z: -0.25454998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1809555679}
   - {fileID: 1580807958}
   - {fileID: 616129257}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 144961265}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &245774706
 GameObject:
@@ -549,6 +550,51 @@ Transform:
   - {fileID: 1627943601}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &356014255
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 356014256}
+  - component: {fileID: 356014257}
+  m_Layer: 0
+  m_Name: LaneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &356014256
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 356014255}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1769697168}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &356014257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 356014255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02400bd403e9d784b873e7a61b643636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lanePrefab: {fileID: 534638382905706531, guid: a0ee60f10463ef34abe4a74e0f8be00d, type: 3}
 --- !u!1 &478821175
 GameObject:
   m_ObjectHideFlags: 0
@@ -891,7 +937,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &616129257
 Transform:
   m_ObjectHideFlags: 0
@@ -1650,7 +1696,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   musicWaitingRoom: {fileID: 1391742026}
   introductionScene: {fileID: 1773370780}
-  jetpackGame: {fileID: 144961264}
+  jetpackGame: {fileID: 1769697167}
   countdownText: {fileID: 1382883575}
   playerCountText: {fileID: 922276774}
   playersAnimations:
@@ -2447,7 +2493,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1580807958
 Transform:
   m_ObjectHideFlags: 0
@@ -2921,6 +2967,39 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: beb72028ba2958b4f866d4104db2f89a, type: 3}
+--- !u!1 &1769697167
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1769697168}
+  m_Layer: 0
+  m_Name: ==== Piano Tiles ====
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1769697168
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1769697167}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.267002, y: -0.3148588, z: -0.9015051}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1981685904}
+  - {fileID: 356014256}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1773370780
 GameObject:
   m_ObjectHideFlags: 0
@@ -3055,7 +3134,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1809555679
 Transform:
   m_ObjectHideFlags: 0
@@ -3272,6 +3351,76 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1981685903
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1981685904}
+  - component: {fileID: 1981685905}
+  m_Layer: 0
+  m_Name: PianoManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1981685904
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981685903}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1769697168}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1981685905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981685903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dacf4d8ef560ec40a4ef77b961dda75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jetpackGame: {fileID: 1688245869}
+  gameCanvas: {fileID: 1627943600}
+  initialTransitionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2003093632
 GameObject:
   m_ObjectHideFlags: 0
@@ -3328,12 +3477,14 @@ MonoBehaviour:
   maxFlickerSpeed: 2
   nebulaColor1: {r: 0.14276557, g: 0.018600922, b: 0.20754719, a: 0.15686275}
   nebulaColor2: {r: 0.007787468, g: 0.11438785, b: 0.3301887, a: 0.15294118}
-  nebulaColor3: {r: 0.8509804, g: 0.7592907, b: 0.63529414, a: 0.1}
+  nebulaColor3: {r: 0.8509804, g: 0.7592907, b: 0.63529414, a: 0.12941177}
   nebulaScale: 200
   nebulaMaskScale: 500
   nebulaIntensity: 0.14
   nebulaOffset: {x: 0, y: 0}
   nebulaMaskThreshold: 0.8
+  edgeOffset: 10
+  fadeWidth: 5
 --- !u!1 &2089583836
 GameObject:
   m_ObjectHideFlags: 0
@@ -3451,4 +3602,4 @@ SceneRoots:
   - {fileID: 1773370781}
   - {fileID: 1688245870}
   - {fileID: 144961265}
-  - {fileID: 231953511}
+  - {fileID: 1769697168}

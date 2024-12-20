@@ -47,6 +47,11 @@ public class PlayerManager : MonoBehaviour
     }  
 
 
+    public int GetPlayerCount(){
+        return activePlayers.Count;
+    }
+
+
     public void SetStartGame(StartGame startGame){
         this.startGame = startGame;
     }
@@ -81,22 +86,8 @@ public class PlayerManager : MonoBehaviour
             Player playerLogic = newPlayer.GetComponent<Player>();
             playerLogic.SetFaceId(faceId);
 
-
-            // Calculate avatar position based on screen width
-            // float screenWidth = Screen.width;
-            // float positionX = (screenWidth / 4) * faceId + (screenWidth / 8); // Center in each quarter
-            // Vector2 viewportPoint = new Vector2(positionX / screenWidth, 1);
-            // Vector2 screenPoint = Camera.main.ViewportToScreenPoint(new Vector3(viewportPoint.x, viewportPoint.y, 0));
-            // Vector2 localPoint;
-            // RectTransformUtility.ScreenPointToLocalPointInRectangle(playerHeaderReference, screenPoint, null, out localPoint);
-
-
             canvasManager.InitPlayerOnHeader(faceId, playerLogic);
 
-            // Associer le texte du score au joueur
-            // playerLogic.SetPlayerHeader(avatar, scoreText);
-
-            // Ajouter le joueur à la liste des joueurs actifs  
             activePlayers.Add(faceId, newPlayer);
         }
     }
@@ -148,6 +139,24 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public IEnumerator PlayersSimpleTransition(Vector3 translation, AnimationCurve curve, float duration){
+
+        yield return PlayerUtils.PlayersSimpleTransition(activePlayers.Values.ToArray(), translation, curve, duration);
+    }
+
+    public IEnumerator PlayersTransitionToPositions(List<Vector3> positions, AnimationCurve curve, float duration){
+
+        yield return PlayerUtils.PlayersTransitionToPositions(activePlayers.Values.ToArray(), positions, curve, duration);
+    }
+
+
+    // public IEnumerator PlayersPianoTilesTransition(List<Vector3> lanesPositions){
+
+
+        
+    // }
+
+
 
 
 
@@ -157,50 +166,18 @@ public class PlayerManager : MonoBehaviour
         foreach (var player in activePlayers)
         {
 
-            // player.Value.GetComponent<Animator>().StopPlayback();
-            // player.Value.GetComponent<Animator>().Play("Idle");
-
-            // player.Value.GetComponent<Animator>().enabled = false;
-
             player.Value.GetComponent<Player>().StartJetpackGame();
         }
     }
 
-    public IEnumerator PlayersSimpleTransition(Vector3 translation, AnimationCurve curve, float duration){
-        float elapsed = 0;
 
-        // StopAllPlayerAnimator();
-
-        List<Vector3> playerInitialPositions = new List<Vector3>();
-
+    public void PlayersStartPianoTilesGame(){
         foreach (var player in activePlayers)
         {
-            playerInitialPositions.Add(player.Value.transform.position);
-            player.Value.GetComponent<Player>().SetPlayerForTransition();
+
+            player.Value.GetComponent<Player>().StartPianoTilesGame();
         }
-        
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float progress = elapsed / duration;
-            
-
-            foreach (var player in activePlayers)
-            {
-                player.Value.transform.position = Vector3.Lerp(
-                    playerInitialPositions[player.Key],
-                    playerInitialPositions[player.Key] + translation,
-                    curve.Evaluate(progress)
-                );
-            }
-
-            yield return null;
-        }
-
-        // foreach (var player in activePlayers)
-        // {
-        //     player.Value.GetComponent<Player>().ResetPlayerAfterTransition();
-        // }
     }
+
+    
 }
