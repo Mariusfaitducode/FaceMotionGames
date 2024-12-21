@@ -28,13 +28,14 @@ public class PianoTilesGame : MonoBehaviour
     private PlayerManager playerManager;
 
     private LaneManager laneManager;
+    private TileSpawner tileSpawner;
 
     private int playerCount = 0;
 
 
     private int difficultyLevel = 1;
 
-    private float playerInitialXPosition = -6f;
+    private float playerInitialXPosition = -5f;
 
 
 
@@ -62,16 +63,19 @@ public class PianoTilesGame : MonoBehaviour
     {
         playerManager = FindObjectOfType<PlayerManager>();
         laneManager = FindObjectOfType<LaneManager>();
+        tileSpawner = FindObjectOfType<TileSpawner>();
 
         playerCount = playerManager.GetPlayerCount();
 
-
-        List<Vector3> lanesPositions = laneManager.InitializeLaneManager(4);
+        List<Vector3> lanesPositions = laneManager.InitializeLaneManager(playerCount);
+        tileSpawner.InitializeTileSpawner(lanesPositions);
 
         // Modify x position of each lane
         List<Vector3> playerPositions = GetPlayerPositions(lanesPositions);
 
         StartCoroutine(InitialTransition(playerPositions));
+
+        StartCoroutine(IncreaseDifficultyCoroutine());
 
     }
 
@@ -99,12 +103,59 @@ public class PianoTilesGame : MonoBehaviour
         // Start the piano tiles game
         playerManager.PlayersStartPianoTilesGame();
 
-        laneManager.isGameStarted = true;
+        tileSpawner.isGameStarted = true;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
+
+    IEnumerator IncreaseDifficultyCoroutine(){
+
+        InitializeDifficulty();
+        yield return new WaitForSeconds(44f);
+        // scrollingBackground.UpdateScrollingSpeed(3f);
+        IncreaseDifficulty();
+
+        yield return new WaitForSeconds(40f);
+        // scrollingBackground.UpdateScrollingSpeed(6f);
+        IncreaseDifficulty();
+
+        yield return new WaitForSeconds(40f);
+        // scrollingBackground.UpdateScrollingSpeed(10f);
+        IncreaseDifficulty();
+
         
+    }
+
+    private void InitializeDifficulty(){
+        difficultyLevel = 1;
+        // planetSpawner.spawnDelay = 3f;
+        // planetSpawner.planetSpeed = 4f;
+        tileSpawner.tileSpeed = 5f;
+    }
+
+    public void IncreaseDifficulty(){
+        difficultyLevel++;
+
+        Debug.Log("Difficulty increased to " + difficultyLevel);
+
+        StartCoroutine(tileSpawner.PauseSpawner(4f));
+        
+        switch(difficultyLevel){
+            case 1:
+                tileSpawner.tileSpeed = 6f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+            case 2:
+                tileSpawner.tileSpeed = 8f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+            case 3:
+                tileSpawner.tileSpeed = 10f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+            case 4:
+                tileSpawner.tileSpeed = 13f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
+        }
     }
 }

@@ -51,7 +51,7 @@ public class JetpackRules : MonoBehaviour
         rb.gravityScale = 1;
         GetComponent<Collider2D>().enabled = true;
 
-        playerLogic.isJetpackGame = true;
+        // playerLogic.isJetpackGame = true;
 
     }
 

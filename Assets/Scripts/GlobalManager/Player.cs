@@ -18,9 +18,11 @@ public class Player : MonoBehaviour
     private TextMeshProUGUI scoreText;
 
     // Game infos
-    public bool isJetpackGame = false;
+    // public bool isJetpackGame = false;
 
     private JetpackRules jetpackRules = null;
+
+    private PianoRules pianoRules = null;
 
 
     void Start()
@@ -31,11 +33,17 @@ public class Player : MonoBehaviour
 
     public void SetMouthState(bool isOpen)
     {
-        if (isJetpackGame){
+        if (jetpackRules != null){
             // Debug.Log("Setting mouth state for player in Jetpack game");
             isMouthOpen = isOpen;
 
             jetpackRules.SetMouthState(isOpen, gameObject);
+        }
+        else if (pianoRules != null){
+            // Debug.Log("Setting mouth state for player in Piano game");
+            isMouthOpen = isOpen;
+
+            pianoRules.SetMouthState(isOpen, gameObject);
         }
     }
 
@@ -64,12 +72,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    
-
-
-    
-
-    
 
 
     public void SetPlayerForTransition(){
@@ -99,5 +101,10 @@ public class Player : MonoBehaviour
     public void StartPianoTilesGame(){
 
         Debug.Log("Starting piano tiles game for player " + faceId);
+
+        this.gameObject.AddComponent<PianoRules>();
+        pianoRules = GetComponent<PianoRules>();
+
+        pianoRules.InitializePianoRules(this, rb);
     }
 }
