@@ -32,7 +32,7 @@ public class PlanetGeneration : MonoBehaviour
         // Ajouter un collider circulaire pour les collisions
         CircleCollider2D collider = gameObject.AddComponent<CircleCollider2D>();
         // collider.isTrigger = true;
-        gameObject.tag = "Obstacle";
+        // gameObject.tag = "Obstacle";
 
         // Réduire la taille du sprite de manière aléatoire
         float scale = Random.Range(0.6f, 1f);

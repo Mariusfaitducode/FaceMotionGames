@@ -6,12 +6,13 @@ public class JetpackGame : MonoBehaviour
 {
     [Header("Audio Components")]
     [SerializeField] private AudioSource musicJetpackGame;
+    [SerializeField] private AudioSource explosionSound;
 
     [Header("Previous Scene")]
     [SerializeField] private GameObject waitingRoom;
 
-    // [Header("Next Scene")]
-    // [SerializeField] private GameObject endGame;
+    [Header("Next Scene")]
+    [SerializeField] private GameObject pianoTilesGame;
 
     [Header("Visual Components")]
     [SerializeField] private NightSkyGenerator nightSky;
@@ -44,7 +45,7 @@ public class JetpackGame : MonoBehaviour
 
     void Start()
     {
-
+        waitingRoom.SetActive(false);
         playerManager = FindObjectOfType<PlayerManager>();
 
         planetSpawner = FindObjectOfType<PlanetSpawner>();
@@ -80,7 +81,7 @@ public class JetpackGame : MonoBehaviour
 
 
         // Start the jetpack game
-        playerManager.PlayersStartJetpackGame();
+        playerManager.PlayersStartJetpackGame(explosionSound);
 
         planetSpawner.gameObject.SetActive(true);
         meteorSpawner.gameObject.SetActive(true);
@@ -89,6 +90,11 @@ public class JetpackGame : MonoBehaviour
     IEnumerator IncreaseDifficultyCoroutine(){
 
         InitializeDifficulty();
+
+        // yield return new WaitForSeconds(20f);
+        // StartCoroutine(PianoTilesGameTransition());
+
+
         yield return new WaitForSeconds(44f);
         scrollingBackground.UpdateScrollingSpeed(3f);
         IncreaseDifficulty();
@@ -101,7 +107,9 @@ public class JetpackGame : MonoBehaviour
         scrollingBackground.UpdateScrollingSpeed(10f);
         IncreaseDifficulty();
 
-        
+        yield return new WaitForSeconds(40f);
+        StartCoroutine(PianoTilesGameTransition());
+
     }
 
 
@@ -152,15 +160,36 @@ public class JetpackGame : MonoBehaviour
                 // meteorSpawner.IncreaseDifficulty();
                 break;
             case 3:
-                planetSpawner.spawnDelay = 1.3f;
-                planetSpawner.planetSpeed = 6.5f;
-                // meteorSpawner.IncreaseDifficulty();
-                break;
-            case 4:
-                planetSpawner.spawnDelay = 0.8f;
+                planetSpawner.spawnDelay = 1.5f;
                 planetSpawner.planetSpeed = 7f;
                 // meteorSpawner.IncreaseDifficulty();
                 break;
+            case 4:
+                planetSpawner.spawnDelay = 1.2f;
+                planetSpawner.planetSpeed = 8f;
+                // meteorSpawner.IncreaseDifficulty();
+                break;
         }
+    }
+
+
+    private IEnumerator PianoTilesGameTransition()
+    {
+        // Fade out de la musique
+        StartCoroutine(MusicUtils.FadeMusicVolume(musicJetpackGame, 0.5f, 0f, 2f));
+
+
+        scrollingBackground.StopScrolling();
+
+        // Fade out des textes
+        // StartCoroutine(TextUtils.FadeTextToTransparent(countdownText, 2f));
+        // StartCoroutine(TextUtils.FadeTextToTransparent(playerCountText, 2f));
+
+        // Attendre que les fades soient terminés
+        yield return new WaitForSeconds(2f);
+
+        // Activer le jeu
+        pianoTilesGame.SetActive(true);
+        
     }
 }

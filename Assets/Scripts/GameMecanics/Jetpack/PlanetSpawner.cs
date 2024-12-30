@@ -12,7 +12,7 @@ public class PlanetSpawner : MonoBehaviour
     // Paramètres pour le contrôle des hauteurs de spawn
     [SerializeField] private int numberOfLanes = 5; // Nombre de "couloirs" verticaux
     [SerializeField] private float minHeight = 0.1f;
-    [SerializeField] private float maxHeight = 0.9f;
+    [SerializeField] private float maxHeight = 0.8f;
     
     // Paramètres pour le mouvement oscillatoire
     [SerializeField] private float oscillationAmplitude = 1f;

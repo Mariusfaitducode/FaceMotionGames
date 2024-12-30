@@ -6,7 +6,7 @@ public class PianoTilesGame : MonoBehaviour
 {
 
      [Header("Audio Components")]
-    // [SerializeField] private AudioSource musicJetpackGame;
+    [SerializeField] private AudioSource musicPianoTilesGame;
 
     [Header("Previous Scene")]
     [SerializeField] private GameObject jetpackGame;
@@ -15,10 +15,10 @@ public class PianoTilesGame : MonoBehaviour
     // [SerializeField] private GameObject endGame;
 
     [Header("Visual Components")]
-    // [SerializeField] private NightSkyGenerator nightSky;
+    private NightSkyGenerator nightSky;
     // [SerializeField] private SpriteRenderer commandCenterRenderer;
 
-    // private ScrollingBackground scrollingBackground;
+    private ScrollingBackground scrollingBackground;
 
 
 
@@ -61,9 +61,13 @@ public class PianoTilesGame : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        jetpackGame.SetActive(false);
         playerManager = FindObjectOfType<PlayerManager>();
         laneManager = FindObjectOfType<LaneManager>();
         tileSpawner = FindObjectOfType<TileSpawner>();
+
+        scrollingBackground = FindObjectOfType<ScrollingBackground>();
+        nightSky = FindObjectOfType<NightSkyGenerator>();
 
         playerCount = playerManager.GetPlayerCount();
 
@@ -95,10 +99,15 @@ public class PianoTilesGame : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+        scrollingBackground.StartScrolling(1f, new Vector3(-1, 0, 0), nightSky.gameObject);
+
         Debug.Log("Players transition to positions");
         yield return playerManager.PlayersTransitionToPositions(playerPositions, initialTransitionCurve, 2f);
 
         Debug.Log("Players transition finished ?");
+
+        musicPianoTilesGame.Play();
+        StartCoroutine(MusicUtils.FadeMusicVolume(musicPianoTilesGame, 0f, 1f, 2f));
 
         // Start the piano tiles game
         playerManager.PlayersStartPianoTilesGame();

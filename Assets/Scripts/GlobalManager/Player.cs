@@ -88,17 +88,21 @@ public class Player : MonoBehaviour
     }
 
 
-    public void StartJetpackGame(){
+    public void StartJetpackGame(AudioSource explosionSound){
+
+        ClearAllRules();
 
         Debug.Log("Starting jetpack game for player " + faceId);
 
         this.gameObject.AddComponent<JetpackRules>();
         jetpackRules = GetComponent<JetpackRules>();
 
-        jetpackRules.InitializeJetpackRules(this, rb);  
+        jetpackRules.InitializeJetpackRules(this, rb, explosionSound);  
     }
 
     public void StartPianoTilesGame(){
+
+        ClearAllRules();
 
         Debug.Log("Starting piano tiles game for player " + faceId);
 
@@ -106,5 +110,11 @@ public class Player : MonoBehaviour
         pianoRules = GetComponent<PianoRules>();
 
         pianoRules.InitializePianoRules(this, rb);
+    }
+
+
+    public void ClearAllRules(){
+        Destroy(GetComponent<JetpackRules>());
+        Destroy(GetComponent<PianoRules>());
     }
 }

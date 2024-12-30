@@ -6,11 +6,9 @@ public class JetpackRules : MonoBehaviour
 {
     private float jetpackSpeed = 5f; 
 
-    private bool isAlive = true;
-
-    private bool collideWithPlanet = false;
-
     private int deathCount = 0;
+
+    private AudioSource explosionSound;
 
 
 
@@ -34,30 +32,66 @@ public class JetpackRules : MonoBehaviour
 
     private Player playerLogic;
 
+    private float respawnedTimer = 0f;
+
+    private float respawnedImmortalityDuration = 1.5f;
+    private bool isRespawned = false;
+
+    private SpriteRenderer playerRenderer;
+
+    [Header("Screen Bounds Settings")]
+    [SerializeField] private float screenBoundaryBuffer = 1f; // Zone de répulsion
+    [SerializeField] private float boundaryForce = 50f;      // Force de répulsion
+    [SerializeField] private float smoothing = 0.5f;         // Lissage de la force
+
     // private void Start(){
 
     //     initialPosition = transform.position;
     // }
 
-    public void InitializeJetpackRules(Player playerLogic, Rigidbody2D rb){
+    public void InitializeJetpackRules(Player playerLogic, Rigidbody2D rb, AudioSource explosionSound){
         this.playerLogic = playerLogic;
         this.rb = rb;
         // this.collider = collider;
 
         initialPosition = transform.position;
         originalScale = transform.localScale;
-        
+        playerRenderer = GetComponent<SpriteRenderer>();
+
         rb.velocity = Vector2.zero;
         rb.gravityScale = 1;
         GetComponent<Collider2D>().enabled = true;
 
         // playerLogic.isJetpackGame = true;
-
+        this.explosionSound = explosionSound;
     }
 
 
-    void FixedUpdate()
+    void Update()
     {
+        // Clamp la position pour garantir que le joueur reste dans les limites
+        float screenHeight = Camera.main.orthographicSize * 2;
+        float halfHeight = screenHeight / 2f;
+        float clampedY = Mathf.Clamp(transform.position.y, -halfHeight, halfHeight);
+        transform.position = new Vector3(transform.position.x, clampedY, transform.position.z);
+
+        if (isRespawned){
+            
+            respawnedTimer += Time.deltaTime;
+            if (respawnedTimer >= respawnedImmortalityDuration){
+                isRespawned = false;
+                respawnedTimer = 0f;
+                GetComponent<Collider2D>().enabled = true;
+
+                // Rendre le player opaque
+                Color tempColor = playerRenderer.color;
+                tempColor.a = 1f;
+                playerRenderer.color = tempColor;
+            }
+
+             
+        }
+
         if (isBeingAttracted)
         {
 
@@ -79,21 +113,21 @@ public class JetpackRules : MonoBehaviour
             if (planetMover != null)
             {
                 // Déplacer le joueur à la même vitesse que la planète sur l'axe X
-                transform.position += Vector3.left * planetMover.speed * Time.fixedDeltaTime;
+                transform.position += Vector3.left * planetMover.speed * Time.deltaTime;
             }
             
             // Continuer l'attraction vers la planète
             transform.position = Vector2.MoveTowards(
                 transform.position,
                 attractorPlanet.transform.position,
-                attractionSpeed * Time.fixedDeltaTime
+                attractionSpeed * Time.deltaTime
             );
 
             // Réduire la taille
             transform.localScale = Vector3.MoveTowards(
                 transform.localScale,
                 Vector3.zero,
-                shrinkSpeed * Time.fixedDeltaTime
+                shrinkSpeed * Time.deltaTime
             );
 
             // Vérifier si assez petit pour réapparaître
@@ -106,11 +140,38 @@ public class JetpackRules : MonoBehaviour
         {
             rb.velocity = new Vector2(0, jetpackSpeed);
         }
-        // else{
-        //     rb.velocity = new Vector2(0, -jetpackSpeed);;
-        // }
+
+        // Vector2 boundaryForce = CalculateBoundaryForce();
+        // rb.AddForce(boundaryForce, ForceMode2D.Impulse);
+
+        
     }
 
+    private Vector2 CalculateBoundaryForce()
+    {
+        Vector2 force = Vector2.zero;
+        float screenHeight = Camera.main.orthographicSize * 2;
+        float playerY = transform.position.y;
+        float halfHeight = screenHeight / 2f;
+
+        // Vérifier la proximité avec le bord supérieur
+        if (playerY > halfHeight - screenBoundaryBuffer)
+        {
+            float distance = halfHeight - playerY;
+            float normalizedForce = Mathf.Lerp(boundaryForce, 0, (distance + screenBoundaryBuffer) / screenBoundaryBuffer);
+            force.y = -normalizedForce;
+        }
+        // Vérifier la proximité avec le bord inférieur
+        else if (playerY < -halfHeight + screenBoundaryBuffer)
+        {
+            float distance = -halfHeight - playerY;
+            float normalizedForce = Mathf.Lerp(boundaryForce, 0, (-distance + screenBoundaryBuffer) / screenBoundaryBuffer);
+            force.y = normalizedForce;
+        }
+
+        // Lisser la force
+        return force * smoothing;
+    }
 
 
     public void SetMouthState(bool isOpen, GameObject player){
@@ -169,15 +230,22 @@ public class JetpackRules : MonoBehaviour
         transform.position = initialPosition;
         transform.localScale = originalScale;
         rb.gravityScale = 1; // Réactiver la gravité
-        GetComponent<Collider2D>().enabled = true;
+        GetComponent<Collider2D>().enabled = false;
         rb.velocity = Vector2.zero;
         rb.angularVelocity = 0f;
 
+        isRespawned = true;
+
+
         // Remettre l'ordre de rendu à sa valeur d'origine
-        SpriteRenderer playerRenderer = GetComponent<SpriteRenderer>();
         if (playerRenderer != null)
         {
             playerRenderer.sortingOrder = 1; // Ou la valeur par défaut que vous souhaitez
+            
+            // Rendre le player semi-transparent pendant l'immunité temporaire
+            Color tempColor = playerRenderer.color;
+            tempColor.a = 0.5f;
+            playerRenderer.color = tempColor;
         }
     }
 
@@ -185,15 +253,28 @@ public class JetpackRules : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
 
+        if (isRespawned){
+            return;
+        }
+
         transform.rotation = Quaternion.Euler(0, 0, 0);
         
-        if (collision.gameObject.CompareTag("Obstacle"))
+        if (collision.gameObject.CompareTag("Planet")) 
         {
             deathCount++;
             playerLogic.UpdateScoreDisplay($"{deathCount}");
 
             // Commencer l'attraction
             StartAttraction(collision.gameObject);
+        }
+        else if (collision.gameObject.CompareTag("Asteroid")){
+            explosionSound.Play();
+            playerRenderer.enabled = false;
+            
+            deathCount++;
+            playerLogic.UpdateScoreDisplay($"{deathCount}");
+
+            StartCoroutine(WaitAndRespawn(1f));
         }
     }
 
@@ -212,5 +293,13 @@ public class JetpackRules : MonoBehaviour
         {
             playerRenderer.sortingOrder = 10; // Utiliser un nombre plus grand que celui des planètes
         }
+    }
+
+
+    IEnumerator WaitAndRespawn(float waitTime){
+        yield return new WaitForSeconds(waitTime);
+
+        playerRenderer.enabled = true;
+        Respawn();
     }
 }

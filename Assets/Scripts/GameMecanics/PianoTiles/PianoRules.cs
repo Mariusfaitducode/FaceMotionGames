@@ -31,6 +31,7 @@ public class PianoRules : MonoBehaviour
         rb.gravityScale = 0;
 
         originalScale = this.gameObject.transform.localScale.x;
+        this.transform.rotation = Quaternion.Euler(0, 0, 0);
         
         Collider2D collider = GetComponent<Collider2D>();
         collider.enabled = true;

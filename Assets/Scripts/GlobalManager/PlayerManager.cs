@@ -162,11 +162,11 @@ public class PlayerManager : MonoBehaviour
 
     
 
-    public void PlayersStartJetpackGame(){
+    public void PlayersStartJetpackGame(AudioSource explosionSound){
         foreach (var player in activePlayers)
         {
 
-            player.Value.GetComponent<Player>().StartJetpackGame();
+            player.Value.GetComponent<Player>().StartJetpackGame(explosionSound);
         }
     }
 
